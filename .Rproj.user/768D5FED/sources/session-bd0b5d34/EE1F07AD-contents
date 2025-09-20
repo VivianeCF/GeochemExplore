@@ -1,0 +1,509 @@
+options(OutDec = ",", encoding = "latin1")
+# Entrando os dados -----------------------------------------------------------
+mydata <- read.csv2("inputs/mydata.csv", head = TRUE, sep = ";", dec = ",",
+                    encoding = "latin1")
+myjob <- read.csv2("inputs/myjob.csv", head = TRUE, sep = ";", dec = ",",
+                   encoding = "UTF-8")
+mylitho <- read.csv2("inputs/mylitho.csv", head = TRUE, sep = ";", dec = ",",
+                     encoding = "latin1")
+legenda_geo <- read.csv2("inputs/mylegend.csv", head = TRUE, sep = ";",
+                         dec = ",", encoding = "UTF-8")
+lito_geo <- sf::st_read("inputs/mygeology.shp") |>
+  dplyr::select(Geo_Reg, NOME, RGB)
+
+ws <- sf::st_read("inputs/mywatershed.shp")
+pt <- sf::st_read("inputs/myoutlet.shp")
+rios <- sf::st_read("inputs/mystream.shp")
+
+# Preparação dos dados --------------------------------------------------------
+lito_geo_geometry <- sf::st_geometry(lito_geo)
+lito_geo <- sf::st_drop_geometry(lito_geo)
+# lito_geo <- dplyr::left_join(lito_geo, legenda_geo, "Geo_Reg")
+lito_geo <- sf::st_sf(lito_geo, geometry = lito_geo_geometry)
+
+mydata <- dplyr::left_join(mydata, mylitho, "ID")
+mydata <- dplyr::left_join(mydata, legenda_geo, "Geo_Reg")
+# class <- unique(mydata$NOME[!is.na(mydata$NOME)])
+mydata$Geo_Reg <- factor(mydata$Geo_Reg)
+sm <- summary(mydata$Geo_Reg)
+sm <- data.frame(Geo_Reg = names(sm), cont = sm)
+
+mydata <- dplyr::left_join(mydata, sm, by = "Geo_Reg")
+mydata_sub <- subset(mydata, cont >= 5)
+mydata_sub <- mydata_sub[order(mydata_sub$Geo_Reg), ]
+
+# Ordenar Geo_Reg numericamente
+mydata_sub$Geo_Reg <- factor(mydata_sub$Geo_Reg,
+                             levels = sort(as.numeric(as.character(unique(mydata_sub$Geo_Reg)))))
+
+ws_geometry <- sf::st_geometry(ws)
+ws <- sf::st_drop_geometry(ws)
+
+bacias <- dplyr::left_join(ws, pt, by = "ID")
+bacias <- dplyr::left_join(bacias, mydata, by = "ID")
+
+ws <- sf::st_sf(ws, geometry = ws_geometry)
+bacias <- sf::st_sf(bacias, geometry = ws_geometry)
+
+bb <- as.numeric(sf::st_bbox(bacias))
+
+ws_clong <- (bb[1] + bb[3]) / 2
+ws_clat <- (bb[2] + bb[4]) / 2
+
+##Simbologia e cores para o mapa------------------------------------------------
+npch <- c(1, 1, 1, 1, 3 , 0, 0, 0, 0)
+npch <- npch[c(3, 4, 5, 6, 7)]
+
+size <- c(2.5, 2, 1.5, 1, 0.5, 1, 1.5, 2, 2.5) 
+size <- size[c(3, 4, 5, 6, 7)]
+
+
+# Paleta de cores dos simbolos e mapa
+
+pal_cod_ini <- c("#00007F", "#0000FF", "#007FFF",
+             "#00FFFF", "#7FFF7F", "#FF7F00", 
+             "#FF0000", "#7F0000", "black") 
+pal_cod <- pal_cod_ini[c(3, 4, 5, 6, 7)]
+pal_cod1 <- pal_cod_ini[c(4, 5, 6, 7)]
+
+# pal_cod <- c("#151966", "#2824AE", "#3451D5", "#80C5E5", "#B4E891", "#FFB380",
+#              "#D57F34", "#D55630", "#772518")
+pal_symb <- rep("black", 5)
+# iconFiles = pchIcons(pch=npch, 30, 30, col = pal_symb, lwd = 2, cex = size)
+iconFiles <- list.files(path = "www/", pattern = ".png")
+# Gerar cores fixas baseadas em Geo_Reg e RGB
+cores_fixas_geo <- setNames(legenda_geo$RGB, legenda_geo$Geo_Reg)
+
+# Definir paleta de cores e classes
+# pal_cod <- c("#00007F", "#0000FF", "#007FFF", "#00FFFF", "#7FFF7F")  # Exemplo de cores
+classes <- c("1", "2", "3", "4", "5")  # Exemplo de classes
+classes1 <- c("1", "2", "3", "4")  # Exemplo de classes
+# Criar correspondência fixa entre classes e cores
+cores_fixas_class <- setNames(c(pal_cod), classes)
+cores_fixas_class1 <- setNames(c(pal_cod1), classes1)
+# Servidor shiny --------------------------------------------------------------
+shinyServer(function(input, output, session) {
+  # Variáveis reativas para armazenar o estado do mapa
+  map_state <- reactiveValues(center = NULL, zoom = NULL)
+  
+  # Observar mudanças no mapa e salvar o estado atual
+  observe({
+    req(input$mymap_bounds, input$mymap_zoom, input$mymap_center)
+    isolate({
+      map_state$center <- input$mymap_center
+      map_state$zoom <- input$mymap_zoom
+    })
+  })
+  
+  # Atualizar o mapa com o estado salvo ao mudar o elemento
+  observeEvent(mydata, { # Ou observeEvent(c(mydata, myjob), {
+    variances <- sapply(mydata, function(col) if (is.numeric(col)) var(col, na.rm = TRUE) else NA)
+    # unique_counts <- sapply(mydata, function(col) if (is.numeric(col)) length(unique(col[!is.na(col)])) else NA) # Não usado
+    m <- sapply(mydata, function(col) if (is.numeric(col)) median(col, na.rm = TRUE) else NA)
+    mad <- sapply(mydata, function(col) if (is.numeric(col)) mad(col, na.rm = TRUE) else NA)
+    
+    valid_columns <- colnames(mydata)[
+      # colMeans(!is.na(mydata)) > 0.7 &  # Comentei para focar na funcionalidade
+      # variances > 1 &                 # Comentei para focar na funcionalidade
+      (m - mad) !=  (m - 2 * mad) & # Esta condição é um pouco estranha, verifique a lógica
+        colnames(mydata) %in% myjob$EL
+    ]
+    
+    valid_names <- myjob$Nome[match(valid_columns, myjob$EL)]
+    names(valid_columns) <- valid_names
+    
+    if (length(valid_columns) > 0) {
+      updateSelectInput(
+        session,
+        "variable",
+        choices = valid_columns
+      )
+    } else {
+      updateSelectInput(
+        session,
+        "variable",
+        choices = NULL
+      )
+    }
+  }, once = TRUE)
+  
+  # Processar os dados com base no tipo de classificação selecionado
+  processed_data <- reactive({
+    req(input$variable, input$classification_type)
+    tipo <- as.numeric(input$classification_type)
+    limiares_classifica(
+      data = mydata,
+      myjob = myjob,
+      elemento = input$variable,
+      tipo = tipo,
+      nb = 4
+    )
+  })
+  
+  debug_data <- reactiveValues(data = NULL, myjob = NULL, elemento = NULL)
+  
+  # Renderizar o mapa geoquímico
+  output$mymap <- renderLeaflet({
+    req(processed_data())
+    dados_classificados <- processed_data()$classificados
+    limiares <- processed_data()$limiares  # Obter os limiares das classes
+    
+    # Obter as classes presentes nos dados classificados e ordená-las
+    classes_presentes <- sort(unique(dados_classificados$Classe))
+    # limiares <- limiares[classes_presentes]
+    
+    # Criar paleta de cores fixa para as classes presentes
+if(input$classification_type != 1){    
+    pal <- colorFactor(
+      palette = cores_fixas_class[classes_presentes],  # Filtrar e ordenar as cores das classes presentes
+      domain = classes_presentes  # Define o domínio como as classes presentes
+    )
+    
+    pal_legenda <- colorFactor(
+      palette = rev(cores_fixas_class[classes_presentes]),  # Inverte a ordem das cores
+      domain = classes_presentes
+    )
+
+    }else{     
+      pal <- colorFactor(
+      palette = cores_fixas_class1[classes_presentes],  # Filtrar e ordenar as cores das classes presentes
+      domain = classes_presentes  # Define o domínio como as classes presentes
+    )
+    
+     pal_legenda <- colorFactor(
+      palette = rev(cores_fixas_class1[classes_presentes]),  # Inverte a ordem das cores
+      domain = classes_presentes
+    )}
+
+    pal_geologia <- colorFactor(
+      palette = cores_fixas_geo,  # Inverte a ordem das cores
+      domain = legenda_geo$NOME
+    )
+    # Juntar os dados espaciais de 'bacias' com os dados classificados e filtra nas
+    bacias_classificadas <- bacias |>
+      dplyr::left_join(dados_classificados, by = "ID") |> 
+      dplyr::filter(!is.na(Classe))
+    
+    # Criar o mapa 
+    leaflet(bacias_classificadas, options = leafletOptions(minZoom = 5, maxZoom = 22)) |>
+      addTiles(group = "Open Street Map") |>
+      addProviderTiles(providers$Esri.WorldShadedRelief, 
+                       group = "Esri World Shaded Relief") |>
+      addPolygons(
+        fillColor = ~pal(Classe),  # Aplica as cores fixas às classes presentes
+        weight = 2,
+        opacity = 0.5,
+        color = "white",
+        dashArray = "3",
+        fillOpacity = 0.7,
+        popup = ~paste(
+          "<b>Estação:</b>", ESTACAO, "<br>",
+          "<b>Teor de", input$variable, ":</b>", round(get(input$variable), 2), "<br>"
+        ),
+        group = "bacias"
+      ) |>
+      addPolygons(data = lito_geo,
+                  stroke = FALSE, fillOpacity = 0.5,
+                  color = lito_geo$RGB, group = "geologia",
+                  popup = paste("Nome da Unidade: ", lito_geo$NOME, "<br>"#,
+
+                  )) |>
+      setView(lng = ws_clong, lat = ws_clat, zoom = 10) |>
+      addMiniMap(
+        tiles = providers$Esri.WorldStreetMap,
+        toggleDisplay = TRUE, position = "topleft",
+        width = 100,
+        height = 100
+      ) |>
+      addPolylines(data = rios, group = "rios", weight = 1, color = "blue") |>
+      addMarkers(
+        lng = bacias$LONG_DEC, lat = bacias$LAT_DEC,
+        icon = ~icons(
+          iconUrl = iconFiles[Classe],
+          iconWidth = 20,  # Defina a largura do ícone
+          iconHeight = 20, # Defina a altura do ícone
+          iconAnchorX = 10, # Define o ponto de ancoragem horizontal (metade da largura)
+          iconAnchorY = 0  # Define o ponto de ancoragem vertical (base do ícone)
+        ),
+        
+        popup = ~paste(
+        "<b>Estação:</b>", ESTACAO, "<br>",
+        "<b>Teor de", input$variable, ":</b>", round(get(input$variable), 2), "<br>"
+      ),
+        group = "estações"#,
+        #clusterOptions = markerClusterOptions()
+      ) |>
+      addLayersControl(
+        baseGroups = c("Esri World Shaded Relief", "Open Street Map"),
+        overlayGroups = c("estações", "bacias", "geologia", "rios"),
+        options = layersControlOptions(collapsed = FALSE)
+      ) |>
+      hideGroup(c("geologia", "rios", "estações")) |>  # Ocultar os grupos por padrão
+      leafem::addMouseCoordinates() |>
+      mapOptions(zoomToLimits = "first")
+  })
+  
+  # Observar eventos de alternância de camadas ---------------------------------
+  observeEvent(c(input$mymap_groups, input$variable, input$classification_type),{
+    
+    req(processed_data(), input$variable, myjob, cores_fixas_class, cores_fixas_class1, bacias, 
+        iconFiles, lito_geo, cores_fixas_geo, legenda_geo)  # Garante que os inputs estão disponíveis
+    
+    # Obter os dados processados
+    dados_classificados <- processed_data()$classificados
+    limiares <- processed_data()$limiares  # Obter os limiares das classes
+    
+    # Obter as classes presentes nos dados classificados e ordená-las
+    classes_presentes <- sort(unique(dados_classificados$Classe))
+    
+    # Filtrar os limiares para as classes presentes
+    limiares <- limiares[classes_presentes]
+    
+    # Arquivos de ícones
+    icones <- iconFiles[classes_presentes]
+    
+    
+    # Criar a paleta de cores para a legenda
+if(input$classification_type == 1){    
+  pal_legenda <- colorFactor(
+      palette = rev(cores_fixas_class1[classes_presentes]),  # Inverte a ordem das cores
+      domain = classes_presentes
+    )
+    }else{
+  pal_legenda <- colorFactor(
+      palette = rev(cores_fixas_class[classes_presentes]),  # Inverte a ordem das cores
+      domain = classes_presentes
+    )
+    }
+    
+    # Atualizar o mapa com a legenda
+    proxy <- leafletProxy("mymap")
+    # Limpar legendas anteriores
+    proxy |> clearControls()
+    # Adicionar legenda para polígonos
+    if ("bacias" %in% input$mymap_groups) {
+
+      proxy |> addLegend(
+        position = "topright",
+        pal = pal_legenda,
+        values = na.omit(dados_classificados$Classe),  # Certifique-se de usar os valores corretos
+        title = paste(input$variable, " (", myjob[myjob$EL == input$variable, "UN"], ")"),
+        labFormat = function(type, cuts, p) {
+          # Formatar os rótulos da legenda com os intervalos das classes
+          if (!is.null(limiares)) {
+            labels <- c()
+            for (i in seq_along(limiares)) {
+              if (i == 1) {
+                labels <- c(labels, paste0(" <", round(limiares[i], 2)))
+              } else if (i == length(limiares)) {
+                labels <- c(labels, paste0(" >", round(limiares[i - 1], 2)))
+              } else {
+                labels <- c(labels, paste0(" ", round(limiares[i - 1], 2), " - ",
+                                           round(limiares[i], 2)))
+              }
+            }
+            rev(labels)  # Inverte os rótulos para ordem decrescente
+          } else {
+            paste0("Classe ", cuts)
+          }
+        },
+        opacity = 0.7
+      )
+    }
+    if ("estações" %in% input$mymap_groups ) {
+      # Criar os rótulos da legenda com ícones personalizados
+      labels <- c()
+      for (i in seq_along(limiares)) {
+        if (i == 1) {
+          labels <- c(labels, paste0(
+            "<img src='", icones[i], "' style='width: 20px; height: 20px; margin-right: 5px;'>",
+            " <", round(limiares[i], 2)
+          ))
+        } else if (i == length(limiares)) {
+          labels <- c(labels, paste0(
+            "<img src='", icones[i], "' style='width: 20px; height: 20px; margin-right: 5px;'>",
+            " >", round(limiares[i - 1], 2)
+          ))
+        } else {
+          
+          labels <- (c(labels, paste0(
+            "<img src='", icones[i], "' style='width: 20px; height: 20px; margin-right: 5px;'>",
+            " ", round(limiares[i - 1], 2), " - ", round(limiares[i], 2))
+          ))
+        }
+      }
+      
+      # Atualizar o mapa com a legenda
+      proxy <- leafletProxy("mymap")
+      proxy |> clearControls()  # Limpar legendas anteriores
+      
+      proxy |> addLegend(
+        position = "topright",
+        pal = colorFactor(palette = "transparent", domain = dados_classificados$Classe),  # Paleta fictícia
+#        pal = pal_legenda,
+        
+        values = na.omit(dados_classificados$Classe),
+        title = paste(input$variable, " (", myjob[myjob$EL == input$variable, "UN"], ")"),
+        labFormat = function(type, cuts, p) {
+          rev(labels)  # Retorna os rótulos com ícones
+        },
+        opacity = 0.7
+      )
+    }
+    if ("estações" %in% input$mymap_groups & "bacias" %in% input$mymap_groups) {
+      # Criar os rótulos da legenda com ícones personalizados
+      labels <- c()
+      for (i in seq_along(limiares)) {
+        if (i == 1) {
+          labels <- c(labels, paste0(
+            "<img src='", icones[i], "' style='width: 20px; height: 20px; margin-right: 5px;'>",
+            " <", round(limiares[i], 2)
+          ))
+        } else if (i == length(limiares)) {
+          labels <- c(labels, paste0(
+            "<img src='", icones[i], "' style='width: 20px; height: 20px; margin-right: 5px;'>",
+            " >", round(limiares[i - 1], 2)
+          ))
+        } else {
+          
+          labels <- (c(labels, paste0(
+            "<img src='", icones[i], "' style='width: 20px; height: 20px; margin-right: 5px;'>",
+            " ", round(limiares[i - 1], 2), " - ", round(limiares[i], 2))
+          ))
+        }
+      }
+      
+      # Atualizar o mapa com a legenda
+      proxy <- leafletProxy("mymap")
+      proxy |> clearControls()  # Limpar legendas anteriores
+      
+      proxy |> addLegend(
+        position = "topright",
+          pal = pal_legenda,
+        
+        values = na.omit(dados_classificados$Classe),
+        title = paste(input$variable, " (", myjob[myjob$EL == input$variable, "UN"], ")"),
+        labFormat = function(type, cuts, p) {
+          rev(labels)  # Retorna os rótulos com ícones
+        },
+        opacity = 0.7
+      )
+    }
+    if ("geologia" %in% input$mymap_groups) {
+      proxy <- leafletProxy("mymap")
+      cores_legenda <- unique(legenda_geo$RGB)
+      nomes_legenda <- unique(legenda_geo$NOME)
+      
+      # Criar o HTML para os itens da legenda com cores e nomes
+      itens_legenda_html <- paste0(
+        "<div style='display: flex; align-items: center; margin-bottom: 5px;'>",
+        "<span style='background-color:", cores_legenda, "; display: inline-block; width: 10px; height: 10px; margin-right: 5px;'></span>",
+        nomes_legenda,
+        "</div>",
+        collapse = ""
+      )
+      
+      # Construir o HTML completo da legenda com a barra de rolagem
+      html_legenda <- paste0(
+        "<div style='max-height: 200px; overflow-y: auto; border: 1px solid #ccc; padding: 5px; background-color: white;'>",
+        "<b>Geologia</b><br>",
+        itens_legenda_html,
+        "</div>"
+      )
+      
+      proxy |> addLegend(
+        position = "bottomleft",
+        title = HTML(html_legenda),
+        colors = character(0), # Não precisamos de cores aqui, pois já estão no HTML
+        labels = character(0), # Não precisamos de rótulos aqui, pois já estão no HTML
+        opacity = 0.7,
+        layerId = "geologia_legend" # Adicione um layerId para facilitar a remoção
+      )
+    }
+        
+  })
+  
+  # Atualizar o mapa ao mudar o elemento ---------------------------------------
+  observeEvent(c(input$variable, input$classification_type), {
+    req(map_state$center, map_state$zoom)
+    leafletProxy("mymap") |>
+      setView(lng = map_state$center$lng, lat = map_state$center$lat, zoom = map_state$zoom)
+  })
+  
+  # Renderizar gráficos dinamicamente ------------------------------------------
+  output$dynamicPlot <- renderUI({
+    if (input$selectedPlot == "histPlot") {
+      plotlyOutput("histPlot")
+    } 
+    if (input$selectedPlot == "histPlot") {
+           plotlyOutput("bpxPlot")
+    } 
+    if (input$selectedPlot == "bpxPlot2"){
+        plotOutput("bpxPlot2")
+    }
+    if (input$selectedPlot == "ca_plot"){
+      plotOutput("ca_plot")
+    }
+  })
+  
+  ## Histograma de amostras agrupadas pela litologia ---------------------------
+  output$histPlot <- renderPlotly({
+    req(input$variable)  # Garante que 'input$variable' não seja NULL
+    hist_litologia(mydata_sub,input$variable,cores_fixas_geo)
+      
+  })
+  
+  ## Boxplot por litologias ----------------------------------------------------
+  output$bpxPlot <- renderPlotly({
+    req(input$variable)  # Garante que 'input$variable' não seja NULL
+    bxp_litologia(mydata_sub,input$variable,cores_fixas_geo,myjob)  
+    
+  })
+ 
+  ## Boxplot de todas as observações -------------------------------------------
+  output$bpxPlot2 <- renderPlot({
+    req(input$variable)  # Garante que 'input$variable' não seja NULL
+    
+    ### EM UMA FUNÇÃO
+    bp_layout(mydata, myjob, input$variable, cores_fixas_class)
+  }, 
+  height = 300
+  )
+  ## C-A Plot
+  output$ca_plot <- renderPlot({
+    req(input$variable, input$classification_type)  
+    
+    # Garante que 'input$variable' não seja NULL
+    if(input$classification_type == 1){
+      dados_classificados <- processed_data()$classificados
+      limiares <- processed_data()$limiares
+      ca_plot(dados_classificados, myjob, limiares,
+            input$variable, cores_fixas_class1)
+      }
+  }, 
+  height = 300
+  )
+  
+  # Renderizar a tabela de dados com base no elemento selecionado
+  output$dataTable <- DT::renderDataTable({
+    req(processed_data())
+    dados_classificados  <- left_join(mydata, processed_data()$classificados, 
+                                      by = "ID")
+    
+    dados_classificados  <- left_join(sf::st_drop_geometry(pt)[,-ncol(pt)], 
+                                      dados_classificados, by = "ID")
+    
+    # Selecionar apenas as colunas relevantes
+    filtered_data <- dados_classificados[, c("NUM_LAB", "ESTACAO", "LONG_DEC",
+                                             "LAT_DEC", input$variable, "Classe")]
+    
+    # Renderizar a tabela
+    DT::datatable(
+      filtered_data,
+      options = list(pageLength = 10, scrollX = TRUE),
+      rownames = FALSE  # Remove os números das linhas
+    )
+  })
+})
+
+

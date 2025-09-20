@@ -1,0 +1,61 @@
+# Certifique-se de que as bibliotecas estão instaladas
+# install.packages(c("shiny", "leaflet"))
+library(shiny)
+library(leaflet)
+
+# Cria um caminho de recurso explícito para a pasta www/
+# O nome 'icons' é o que será usado na URL web
+addResourcePath("icons", "www")
+
+# Define a UI do aplicativo, que contém os elementos visuais
+ui <- fluidPage(
+  titlePanel("Exemplo de App com Ícones no Leaflet"),
+  
+  hr(),
+  
+  h4("Mapa com marcador personalizado"),
+  p("Este marcador usa o primeiro ícone encontrado na pasta 'www/'."),
+  
+  # Aqui será renderizado o mapa
+  leafletOutput("mapa_com_icone")
+)
+
+# Define a lógica do servidor, que processa os dados e as saídas
+server <- function(input, output, session) {
+  
+  # Esta é a parte que garante que os ícones da pasta www/ sejam carregados
+  # e que a lógica para criar o mapa esteja dentro do servidor
+  output$mapa_com_icone <- renderLeaflet({
+    
+    # Lista os arquivos PNG na pasta www/
+    iconFiles <- list.files(path = "www/", pattern = ".png")
+    
+    # Verifica se há arquivos encontrados para evitar erros
+    if (length(iconFiles) == 0) {
+      print("Nenhum arquivo PNG encontrado na pasta www/. Por favor, adicione um.")
+      return(NULL)
+    }
+    
+    # Define o ícone Leaflet usando o primeiro nome de arquivo encontrado.
+    # Agora, o caminho é construído de forma explícita com 'icons/'
+    leafletIcon <- leaflet::makeIcon(
+      iconUrl = paste0("icons/", iconFiles[1]),
+      iconWidth = 38,
+      iconHeight = 38
+    )
+    
+    # Cria e retorna o mapa
+    leaflet() %>%
+      addTiles() %>%
+      setView(lat = 0, lng = 0, zoom = 2) %>%
+      addMarkers(
+        lat = 0,
+        lng = 0,
+        icon = leafletIcon,
+        popup = "Este é o seu ícone!"
+      )
+  })
+}
+
+# Cria o aplicativo Shiny
+shinyApp(ui = ui, server = server)
