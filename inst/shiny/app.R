@@ -151,7 +151,14 @@ tabItem(
         img(src = "icons/logo.jpg", width = 100, units = "%", alt = "Sua Foto", class = "logo-image"),
         h2("Informações do Aplicativo"),
         p("O aplicativo foi desenvolvido pelo Serviço Geológico do Brasil/CPRM para a comunidade geocientífica. Ele permite que o usuário carregue dados e realize análises, utilizando os seguintes arquivos de entrada:"),
-    
+    h3("Arquivos de demonstração"),
+        p("Para facilitar o uso do aplicativo, uma pasta chamada 'inputs/' foi criada na raiz do aplicativo. 
+        Esta pasta contém arquivos de exemplo que podem ser usados para testar as funcionalidades do aplicativo sem a 
+        necessidade de carregar seus próprios dados."),
+        p("Fonte dos arquivos de exemplo: "),
+        p("FALEIROS, Frederico Meira; PAVAN, Mauricio. Geologia e recursos minerais da folha Eldorado Paulista SG.22-X-B-VI: escala 1:100.000: estados de São Paulo e Paraná. São Paulo: CPRM, 2013. Programa Geologia do Brasil (PGB)."),
+        p("Disponível em: <https://rigeo.sgb.gov.br/handle/doc/11525>."),
+
     h3("Arquivos de Tabela (.csv)"),
     tags$ul(
       tags$li(
