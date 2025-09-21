@@ -6,7 +6,6 @@ source("R/minhas_funcoes.R")
 # Cria um caminho de recurso explícito para a pasta www/
 # O nome 'icons' é o que será usado na URL web
 addResourcePath("icons", "www")
-
 # Interface do usuário --------------------------------------------------------
 ui <- dashboardPage(
   dashboardHeader( 
@@ -76,45 +75,36 @@ ui <- dashboardPage(
     
     # Conteúdo das abas
     tabItems(
-      tabItem(
-        tabName = "entrada_arquivos",
-        h3("Faça o upload dos arquivos de dados"),
-        p("Para que o app funcione, é necessário carregar todos os arquivos de dados.", style = "margin-bottom: 20px;"),
-        
-        fluidRow(
-          box(
-            title = "Arquivos CSV",
-            width = 6,
-            status = "primary",
-            solidHeader = TRUE,
-            fileInput("mydata_upload", "1. Escolha mydata.csv",
-                      accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-            fileInput("myjob_upload", "2. Escolha myjob.csv",
-                      accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-            fileInput("mylitho_upload", "3. Escolha mylitho.csv",
-                      accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-            fileInput("mylegend_upload", "4. Escolha mylegend.csv",
-                      accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
-          ),
-          
-          box(
-            title = "Arquivos de Forma (.shp)",
-            width = 6,
-            status = "primary",
-            solidHeader = TRUE,
-            fileInput("mygeology_upload", "5. Escolha os arquivos de mygeology (.shp, .shx, .dbf, .prj)",
-                      multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj")),
-            fileInput("mywatershed_upload", "6. Escolha os arquivos de mywatershed (.shp, .shx, .dbf, .prj)",
-                      multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj")),
-            fileInput("myoutlet_upload", "7. Escolha os arquivos de myoutlet (.shp, .shx, .dbf, .prj)",
-                      multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj")),
-            fileInput("mystream_upload", "8. Escolha os arquivos de mystream (.shp, .shx, .dbf, .prj)",
-                      multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj"))
-          )
-        ),
-        
-        verbatimTextOutput("upload_status")
-      ),
+tabItem(
+  tabName = "entrada_arquivos",
+  fluidRow(
+    box(
+      title = "Opções de Arquivos",
+      width = 12,
+      status = "primary",
+      solidHeader = TRUE,
+      p("Selecione uma das opções abaixo para carregar os dados. Se você escolher 'Usar Arquivos Predefinidos', os arquivos da pasta 'inputs/' do aplicativo serão usados automaticamente."),
+      checkboxInput("use_predefined_files", "Usar Arquivos Predefinidos", value = FALSE)
+    )
+  ),
+  fluidRow(
+    box(
+      title = "Arquivos CSV",
+      width = 6,
+      status = "primary",
+      solidHeader = TRUE,
+      uiOutput("csv_inputs")
+    ),
+    box(
+      title = "Arquivos de Forma (.shp)",
+      width = 6,
+      status = "primary",
+      solidHeader = TRUE,
+      uiOutput("shp_inputs")
+    )
+  ),
+  verbatimTextOutput("upload_status")
+),
       
       # Aba Mapa
       tabItem(
@@ -236,26 +226,75 @@ server <- function(input, output, session) {
 output$data_atualizacao_output <- renderUI({
   p(paste("Data:", Sys.Date()))
 })
-  #options(OutDec = ",", encoding = "latin1")
-  # Reactive functions for file uploads
-  # 1. Uploads: cada arquivo em um reativo
-  mydata_upload <- reactive({
+# Lógica para renderizar os inputs de arquivo
+output$csv_inputs <- renderUI({
+  if (input$use_predefined_files) {
+    div(
+      p("Usando arquivos CSV predefinidos da pasta 'inputs/'."),
+      tags$ul(
+        tags$li("mydata.csv"),
+        tags$li("myjob.csv"),
+        tags$li("mylitho.csv"),
+        tags$li("mylegend.csv")
+      )
+    )
+  } else {
+    div(
+      fileInput("mydata_upload", "1. Escolha mydata.csv",
+                accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+      fileInput("myjob_upload", "2. Escolha myjob.csv",
+                accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+      fileInput("mylitho_upload", "3. Escolha mylitho.csv",
+                accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
+      fileInput("mylegend_upload", "4. Escolha mylegend.csv",
+                accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
+    )
+  }
+})
+
+output$shp_inputs <- renderUI({
+  if (input$use_predefined_files) {
+    div(
+      p("Usando arquivos de forma predefinidos da pasta 'inputs/'."),
+      tags$ul(
+        tags$li("mygeology.shp"),
+        tags$li("mywatershed.shp"),
+        tags$li("myoutlet.shp"),
+        tags$li("mystream.shp")
+      )
+    )
+  } else {
+    div(
+      fileInput("mygeology_upload", "5. Escolha os arquivos de mygeology (.shp, .shx, .dbf, .prj)",
+                multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj")),
+      fileInput("mywatershed_upload", "6. Escolha os arquivos de mywatershed (.shp, .shx, .dbf, .prj)",
+                multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj")),
+      fileInput("myoutlet_upload", "7. Escolha os arquivos de myoutlet (.shp, .shx, .dbf, .prj)",
+                multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj")),
+      fileInput("mystream_upload", "8. Escolha os arquivos de mystream (.shp, .shx, .dbf, .prj)",
+                multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj"))
+    )
+  }
+})
+
+# Lógica reativa para carregar os dados
+mydata_upload <- reactive({
+  if (input$use_predefined_files) {
+    path <- file.path("inputs", "mydata.csv")
+    read_csv2(path, locale = locale(encoding = "latin1"))
+  } else {
     req(input$mydata_upload)
     read_csv2(input$mydata_upload$datapath, locale = locale(encoding = "latin1"))
-  })
-  myjob_upload <- reactive({
-    req(input$myjob_upload)
-    read_csv2(input$myjob_upload$datapath, locale = locale(encoding = "latin1"))
-  })
-  mylitho_upload <- reactive({
-    req(input$mylitho_upload)
-    read_csv2(input$mylitho_upload$datapath, locale = locale(encoding = "latin1"))
-  })
-  mylegend_upload <- reactive({
-    req(input$mylegend_upload)
-    read_csv2(input$mylegend_upload$datapath, locale = locale(encoding = "latin1"))
-  })
-  mygeology_upload <- reactive({
+  }
+})
+
+# ... Repita a mesma lógica 'if/else' para os outros arquivos ...
+
+mygeology_upload <- reactive({
+  if (input$use_predefined_files) {
+    path <- file.path("inputs", "mygeology.shp")
+    sf::st_read(path)
+  } else {
     req(input$mygeology_upload)
     temp_dir <- dirname(input$mygeology_upload$datapath[1])
     temp_files <- input$mygeology_upload
@@ -263,9 +302,14 @@ output$data_atualizacao_output <- renderUI({
     shp_file <- temp_files$name[grep(".shp$", temp_files$name)]
     if (length(shp_file) == 0) return(NULL)
     sf::st_read(file.path(temp_dir, shp_file))
-  })
-  
-  ws_upload <- reactive({
+  }
+})
+
+ws_upload <- reactive({
+  if (input$use_predefined_files) {
+    path <- file.path("inputs", "mywatershed.shp")
+    sf::st_read(path)
+  } else {
     req(input$mywatershed_upload)
     temp_dir <- dirname(input$mywatershed_upload$datapath[1])
     temp_files <- input$mywatershed_upload
@@ -273,9 +317,14 @@ output$data_atualizacao_output <- renderUI({
     shp_file <- temp_files$name[grep(".shp$", temp_files$name)]
     if (length(shp_file) == 0) return(NULL)
     sf::st_read(file.path(temp_dir, shp_file))
-  })
-  
-  pt_upload <- reactive({
+  }
+
+})
+pt_upload <- reactive({
+  if (input$use_predefined_files) {
+    path <- file.path("inputs", "myoutlet.shp")
+    sf::st_read(path)
+  } else    {
     req(input$myoutlet_upload)
     temp_dir <- dirname(input$myoutlet_upload$datapath[1])
     temp_files <- input$myoutlet_upload
@@ -283,9 +332,13 @@ output$data_atualizacao_output <- renderUI({
     shp_file <- temp_files$name[grep(".shp$", temp_files$name)]
     if (length(shp_file) == 0) return(NULL)
     sf::st_read(file.path(temp_dir, shp_file))
-  })
-  
-  rios_upload <- reactive({
+  }
+})
+rios_upload <- reactive({
+  if (input$use_predefined_files) {
+    path <- file.path("inputs", "mystream.shp")
+    sf::st_read(path)
+  } else    {
     req(input$mystream_upload)
     temp_dir <- dirname(input$mystream_upload$datapath[1])
     temp_files <- input$mystream_upload
@@ -293,8 +346,39 @@ output$data_atualizacao_output <- renderUI({
     shp_file <- temp_files$name[grep(".shp$", temp_files$name)]
     if (length(shp_file) == 0) return(NULL)
     sf::st_read(file.path(temp_dir, shp_file))
-  })
-  
+  }
+})
+mylitho_upload <- reactive({
+  if (input$use_predefined_files) {
+    path <- file.path("inputs", "mylitho.csv")
+    read_csv2(path, locale = locale(encoding = "latin1"))
+  } else {
+    req(input$mylitho_upload)
+    read_csv2(input$mylitho_upload$datapath, locale = locale(encoding = "latin1"))
+  }
+})
+
+mylegend_upload <- reactive({
+  if (input$use_predefined_files) {
+    path <- file.path("inputs", "mylegend.csv")
+    read_csv2(path, locale = locale(encoding = "latin1"))
+  } else {
+    req(input$mylegend_upload)
+    read_csv2(input$mylegend_upload$datapath, locale = locale(encoding = "latin1"))
+  }
+})
+
+myjob_upload <- reactive({
+  if (input$use_predefined_files) {
+    path <- file.path("inputs", "myjob.csv")
+    read_csv2(path, locale = locale(encoding = "latin1"))
+  } else {
+    req(input$mylegend_upload)
+    read_csv2(input$myjob_upload$datapath, locale = locale(encoding = "latin1"))
+  }
+})
+
+ 
   # 2. Controle de upload completo
   upload_completo <- reactive({
     !is.null(mydata_upload()) &&
