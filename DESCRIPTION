@@ -1,0 +1,11 @@
+Package: GeochemExplore
+Title: Shiny app for geochemical data analysis
+Description: Shiny app for geochemical data analysis, including mapping, EDA graphics and classification methods.
+Version: 0.1.0
+Authors@R: person("Viviane Carillo Ferrari", email = "viviane.ferari@sgb.gov.br", role = c("aut", "cre"))
+License: GPL-3
+Depends: R (>= 4.0.0)
+Imports: shiny, sf, leaflet, terra, digeoqR, zip
+Suggests: 
+URL: https://github.com/VivianeCF/GeochemExplore
+BugReports: https://github.com/VivianeCF/GeochemExplore/issues
