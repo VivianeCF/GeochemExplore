@@ -10,7 +10,7 @@ addResourcePath("icons", "www")
 # Interface do usuário --------------------------------------------------------
 ui <- dashboardPage(
   dashboardHeader( 
-    title = "Mapa Geoquímico"
+    title = "GeochemExplore"
   ),
   dashboardSidebar(
     selectInput(
@@ -123,13 +123,10 @@ ui <- dashboardPage(
         img(src = "icons/logo.jpg", width = 100, units = "%", alt = "Sua Foto", class = "logo-image"),
         h2("Bem-vindo!"),
         div(class = "boas-vindas-paragrafo", "Temos o prazer de compartilhar
-                com você o mapa geoquímico da Folha Eldorado Paulista."),
-        div(class = "boas-vindas-paragrafo", "Este mapa foi elaborado com
-                dados do levantamento geoquímico da área desenvolvido
-                                        pelo Serviço Geológioco do Brasil."),
-        div(class = "boas-vindas-paragrafo","O aplicativo em shiny permite ao
-                pesquisador explorar, de forma interativa, os dados de concentração
-                química dos elementos nas amostras de sedimento de corrente."),
+                com você o aplicativo GeochemExplore."),
+        div(class = "boas-vindas-paragrafo", "Este aplicativo foi desenvolvido pelo Serviço Geológico do Brasil/CPRM
+                                      para a comunidade geocientífica."),
+        div(class = "boas-vindas-paragrafo","Ele permite a entrada de dados do usuário."),
         div(class = "boas-vindas-paragrafo", "Foram utilizados no aplicativo
                 três métodos de classificação:"),
         div(class = "boas-vindas-paragrafo", "TIF baseado nos limiares do
@@ -138,6 +135,7 @@ ui <- dashboardPage(
                 baseado nos valores de mediana e mad;"),
         div(class = "boas-vindas-paragrafo", "C-A método fractal que considera
                 a área acumulada das bacias e teores ordenados de forma ascendente."),
+        div(class = "boas-vindas-paragrafo", "São apresentados os itens Mapa, Gráficos e Tabela de dados."),                
         actionButton("botao-iniciar", "Iniciar")
     ),
     
