@@ -37,15 +37,12 @@ ui <- dashboardPage(
                menuSubItem("Boxplot por Litologia", tabName = "bpxPlot_tab"),
                menuSubItem("Boxplot Geral", tabName = "bpxPlot2_tab"),
                menuSubItem("Gráfico C-A", tabName = "ca_plot_tab")),
-      menuItem("Tabela de Dados", tabName = "tabela", icon = icon("table"))
+      menuItem("Tabela de Dados", tabName = "tabela", icon = icon("table")),
+      menuItem("Informações do aplicativo", tabName = "info", icon = icon("info-circle"))
     )
   ),
   dashboardBody(
-    # Adicione o título manualmente aqui, logo após abrir o dashboardBody
-    tags$div(
-      style = "font-size:2em; font-weight:bold; text-align:center; margin-bottom:10px; margin-top:10px;",
-      "Folha Eldorado Paulista"
-    ),
+    # Adiciona CSS personalizado
     tags$style(HTML("
     #mymap {
       height: calc(100vh - 50px) !important; /* Ajusta a altura do mapa */
@@ -54,91 +51,21 @@ ui <- dashboardPage(
     .selectize-dropdown {
       z-index: 9999 !important;
     }
-    .boas-vindas-paragrafo {
+    #info {
       margin-bottom: 10px; /* Adiciona margem abaixo de cada parágrafo */
       line-height: 1.5; /* Aumenta o espaçamento entre linhas */
       text-align: justify; /* Justifica o texto */
       font-size: 1.5em;
     }
+            .logo-image {
+          display: block;
+          margin-left: auto;
+          margin-right: auto;
+        }
   ")
+
     ),
-    tags$head(
-      tags$style(HTML("
-        /* Estilos CSS para a página inicial flutuante */
-        .floating-panel {
-          width: auto; /* Outra largura de exemplo */
-          height: auto; /* A altura se ajustará ao conteúdo */
-          background-color: white;
-          padding: 20px;
-          border: 1px solid #ccc;
-          box-shadow: 2px 2px 5px #888888;
-          z-index: 2001;
-          text-align: center;
-        }
 
-        .profile-image {
-          width: 100px;
-          height: 100px;
-          border-radius: 50%;
-          object-fit: cover;
-          margin-bottom: 10px;
-        }
-
-        #botao-iniciar {
-          margin-top: 15px;
-          cursor: pointer;
-          padding: 10px 20px;
-          background-color: #007bff;
-          color: white;
-          border: none;
-          border-radius: 5px;
-        }
-
-        #botao-iniciar:hover {
-          background-color: #0056b3;
-        }
-
-        .hidden {
-          display: none !important;
-        }
-
-        /* Estilo para o conteúdo principal do mapa */
-        .content-wrapper {
-          margin-top: 0 !important; /* Remove a margem superior padrão
-          do dashboardBody */
-        }
-
-      ")),
-      tags$script(HTML("
-        $(document).ready(function() {
-          $('#botao-iniciar').click(function() {
-            $('.floating-panel').addClass('hidden');
-          });
-        });
-
-      "))
-    ),
-    # Div para a página inicial flutuante
-    div(class = "floating-panel", id = "boas-vindas",
-        img(src = "icons/logo.jpg", width = 100, units = "%", alt = "Sua Foto", class = "logo-image"),
-        h2("Bem-vindo!"),
-        div(class = "boas-vindas-paragrafo", "Temos o prazer de compartilhar
-                com você o aplicativo GeochemExplore."),
-        div(class = "boas-vindas-paragrafo", "Este aplicativo foi desenvolvido pelo Serviço Geológico do Brasil/CPRM
-                                      para a comunidade geocientífica."),
-        div(class = "boas-vindas-paragrafo","Ele permite a entrada de dados do usuário."),
-        div(class = "boas-vindas-paragrafo", "Foram utilizados no aplicativo
-                três métodos de classificação:"),
-        div(class = "boas-vindas-paragrafo", "TIF baseado nos limiares do
-                boxplot segundo o método Tuckey;"),
-        div(class = "boas-vindas-paragrafo", "MAD um método mais robusto
-                baseado nos valores de mediana e mad;"),
-        div(class = "boas-vindas-paragrafo", "C-A método fractal que considera
-                a área acumulada das bacias e teores ordenados de forma ascendente."),
-        div(class = "boas-vindas-paragrafo", "São apresentados os itens Mapa, Gráficos e Tabela de dados."),                
-        actionButton("botao-iniciar", "Iniciar")
-    ),
-    
     # Renderizar os seletores dinamicamente com base na aba ativa
     fluidRow(
       conditionalPanel(
@@ -227,12 +154,88 @@ ui <- dashboardPage(
       tabItem(
         tabName = "tabela",
         DT::dataTableOutput("dataTable")
+      ),
+      # Aba Informações do aplicativo
+      tabItem(
+        tabName = "info",
+        img(src = "icons/logo.jpg", width = 100, units = "%", alt = "Sua Foto", class = "logo-image"),
+        h2("Informações do Aplicativo"),
+        p("O aplicativo foi desenvolvido pelo Serviço Geológico do Brasil/CPRM para a comunidade geocientífica. Ele permite que o usuário carregue dados e realize análises, utilizando os seguintes arquivos de entrada:"),
+    
+    h3("Arquivos de Tabela (.csv)"),
+    tags$ul(
+      tags$li(
+        tags$strong("mydata_upload (Dados de Geoquímica)"),
+        ": Este arquivo deve conter os dados de geoquímica para análise, incluindo as coordenadas de cada ponto amostral. É a base para as análises e classificações do aplicativo."
+      ),
+      tags$li(
+        tags$strong("myjob_upload (Dados do Trabalho)"),
+        ": Este arquivo de metadados serve para vincular a base geoquímica às informações específicas do trabalho, como o código do projeto, data e outras referências."
+      ),
+      tags$li(
+        tags$strong("mylitho_upload (Dados de Litologia)"),
+        ": Contém informações litológicas de cada ponto de amostra, permitindo que a análise geoquímica seja contextualizada com a geologia local."
+      ),
+      tags$li(
+        tags$strong("mylegend_upload (Legenda)"),
+        ": Este arquivo é usado para definir a simbologia e a legenda para os mapas e gráficos gerados, padronizando a visualização de acordo com as especificações do usuário."
+      )
+    ),
+    
+    h3("Arquivos de Geometria (.shp)"),
+    tags$ul(
+      tags$li(
+        tags$strong("mygeology_upload (Geologia)"),
+        ": Este é um arquivo de forma (.shp) contendo polígonos que representam as unidades geológicas da área de estudo. A importação deste arquivo é essencial para a criação do mapa geológico."
+      ),
+      tags$li(
+        tags$strong("ws_upload (Bacias Hidrográficas)"),
+        ": Este arquivo de forma (.shp) representa as bacias hidrográficas. A bacia é a área de captação de água que drena para um ponto específico. O aplicativo usa este arquivo para realizar análises de bacias e contextualizar os dados geoquímicos."
+      ),
+      tags$li(
+        tags$strong("pt_upload (Pontos de Amostra)"),
+        ": Representa os pontos de amostra em campo. Ele pode ser usado para importar os pontos de geoquímica e sua localização para a análise."
+      ),
+      tags$li(
+        tags$strong("rios_upload (Rede de Drenagem)"),
+        ": Este arquivo de forma (.shp) representa a rede de drenagem (rios e córregos). A visualização desta camada é crucial para entender o fluxo de água e as relações com os dados geoquímicos."
+      ),
+    h3("Tipos de Classificação"),
+        p("O aplicativo oferece três métodos de classificação para os dados geoquímicos:"),
+      tags$ul(
+        
+        tags$li(
+          tags$strong("TIF (Tukey Inner Fence): "),
+          "Baseado nos limiares do boxplot segundo o método Tuckey;"),
+        
+        tags$li(
+          tags$strong("MAD (Median absolute deviation): "),
+          "Método mais robusto baseado nos valores de mediana e mad;"),
+        tags$li(
+          tags$strong("C-A (Concentração - Área): "),
+          "Método fractal que considera a área acumulada das bacias e teores ordenados de forma ascendente.")
+        ),
+        p("Para a classificação, os dados são previamente logtransformados."),
+    h3("Funcionalidades do Aplicativo"),   
+        p("São apresentados os itens Mapa, Gráficos e Tabela de dados. 
+        No mapa, o usuário pode visualizar as estações de amostragem, bacias hidrográficas, unidades geológicas e rede de drenagem. 
+        Nos gráficos, é possível gerar histogramas e boxplots por litologia, boxplot geral e gráfico C-A. 
+        A tabela de dados apresenta os dados processados com as classificações."),
+    h3("Desenvolvimento"),
+        p("Desenvolvedora: Viviane Carillo Ferrari"),
+        uiOutput("data_atualizacao_output"),# Chama a função para mostrar a data atual
+        p("Contato: viviane.ferrari@sgb.gov.br")
       )
     )
   )
 )
+)
 # Servidor shiny --------------------------------------------------------------
 server <- function(input, output, session) {
+  # Adicione esta função para renderizar a data dinamicamente
+output$data_atualizacao_output <- renderUI({
+  p(paste("Data:", Sys.Date()))
+})
   #options(OutDec = ",", encoding = "latin1")
   # Reactive functions for file uploads
   # 1. Uploads: cada arquivo em um reativo
