@@ -100,7 +100,7 @@ tabItem(
       # Aba Mapa
       tabItem(
         tabName = "mapa",
-        leafletOutput("mymap", height = "80vh")
+        withSpinner(leafletOutput("mymap", height = "80vh"))
       ),
       
       # Aba Gráficos

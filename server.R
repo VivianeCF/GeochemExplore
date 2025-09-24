@@ -327,116 +327,122 @@ myjob_upload <- reactive({
   #  debug_data <- reactiveValues(data = NULL, myjob = NULL, elemento = NULL)
   
   # Renderizar o mapa geoquímico
-  output$mymap <- renderLeaflet({
-    req(processed_data(), ws_bacias(), lito_geo_processed(), mylegend_upload(), iconFiles())
-    bacias <- ws_bacias()
-    # Corrige geometrias inválidas antes de calcular o centroide
-    bacias_valid <- sf::st_make_valid(bacias)
-    centroide <- sf::st_centroid(sf::st_union(sf::st_geometry(bacias_valid)))
-    ws_clong <- sf::st_coordinates(centroide)[1]
-    ws_clat  <- sf::st_coordinates(centroide)[2]
-    
-    lito_geo <- lito_geo_processed()
-    legenda_geo <- mylegend_upload()
-    
-    dados_classificados <- processed_data()$classificados
-    limiares <- processed_data()$limiares  # Obter os limiares das classes
-    
-    # Obter as classes presentes nos dados classificados e ordená-las
-    classes_presentes <- sort(unique(dados_classificados$Classe))
-    # limiares <- limiares[classes_presentes]
-    
-    # Criar paleta de cores fixa para as classes presentes
-    if(input$classification_type != 1){    
-      pal <- colorFactor(
-        palette = cores_fixas_class[classes_presentes],  # Filtrar e ordenar as cores das classes presentes
-        domain = classes_presentes  # Define o domínio como as classes presentes
-      )
-      
-      pal_legenda <- colorFactor(
-        palette = rev(cores_fixas_class[classes_presentes]),  # Inverte a ordem das cores
-        domain = classes_presentes
-      )
-      
-    }else{     
-      pal <- colorFactor(
-        palette = cores_fixas_class1[classes_presentes],  # Filtrar e ordenar as cores das classes presentes
-        domain = classes_presentes  # Define o domínio como as classes presentes
-      )
-      
-      pal_legenda <- colorFactor(
-        palette = rev(cores_fixas_class1[classes_presentes]),  # Inverte a ordem das cores
-        domain = classes_presentes
-      )}
-    
-    pal_geologia <- colorFactor(
-      palette = cores_fixas_geo,  # Inverte a ordem das cores
-      domain = legenda_geo$NOME
+output$mymap <- renderLeaflet({
+  # Requer que o pacote shinycssloaders esteja instalado e carregado.
+  # Use library(shinycssloaders) no início do seu arquivo.
+  
+  # A função withSpinner() deve ser usada no UI, envolvendo o leafletOutput.
+  
+  req(processed_data(), ws_bacias(), lito_geo_processed(), mylegend_upload(), iconFiles())
+  bacias <- ws_bacias()
+  # Corrige geometrias inválidas antes de calcular o centroide
+  bacias_valid <- sf::st_make_valid(bacias)
+  centroide <- sf::st_centroid(sf::st_union(sf::st_geometry(bacias_valid)))
+  ws_clong <- sf::st_coordinates(centroide)[1]
+  ws_clat  <- sf::st_coordinates(centroide)[2]
+  
+  lito_geo <- lito_geo_processed()
+  legenda_geo <- mylegend_upload()
+  
+  dados_classificados <- processed_data()$classificados
+  limiares <- processed_data()$limiares  # Obter os limiares das classes
+  
+  # Obter as classes presentes nos dados classificados e ordená-las
+  classes_presentes <- sort(unique(dados_classificados$Classe))
+  # limiares <- limiares[classes_presentes]
+  
+  # Criar paleta de cores fixa para as classes presentes
+  if(input$classification_type != 1){    
+    pal <- colorFactor(
+      palette = cores_fixas_class[classes_presentes],  # Filtrar e ordenar as cores das classes presentes
+      domain = classes_presentes  # Define o domínio como as classes presentes
     )
-    # Juntar os dados espaciais de 'bacias' com os dados classificados e filtra nas
-    bacias_classificadas <- bacias |>
-      dplyr::left_join(dados_classificados, by = "ID") |> 
-      dplyr::filter(!is.na(Classe))
     
-    # Criar o mapa 
-    leaflet(bacias_classificadas, options = leafletOptions(minZoom = 5, maxZoom = 22)) |>
-      setView(lng = ws_clong, lat = ws_clat, zoom = 10) |>
-      addTiles(group = "Open Street Map") |>
-      addProviderTiles(providers$Esri.WorldShadedRelief, 
-                       group = "Esri World Shaded Relief") |>
-      addPolygons(
-        fillColor = ~pal(Classe),  # Aplica as cores fixas às classes presentes
-        weight = 2,
-        opacity = 0.5,
-        color = "white",
-        dashArray = "3",
-        fillOpacity = 0.7,
-        popup = ~paste(
-          "<b>Estação:</b>", ESTACAO, "<br>",
-          "<b>Teor de", input$variable, ":</b>", round(get(input$variable), 2), "<br>"
-        ),
-        group = "bacias"
-      ) |>
-      addPolygons(data = lito_geo,
-                  stroke = TRUE,                # Mostra a borda
-                  color = "black",              # Cor da borda
-                  weight = 1,                   # Espessura da borda
-                  fillOpacity = 0.5,
-                  fillColor = ~RGB,             # Usa a coluna RGB para preencher
-                  group = "geologia",
-                  popup = ~paste("Nome da Unidade: ", NOME, "<br>")
-      ) |>
-      addMiniMap(
-        tiles = providers$Esri.WorldStreetMap,
-        toggleDisplay = TRUE, position = "topleft",
-        width = 100,
-        height = 100
-      ) |>
-      addPolylines(data = rios_processed(), group = "rios", weight = 1, color = "blue") |>
-      addMarkers(
-        lng = ~LONG_DEC, lat = ~LAT_DEC,
-        icon = ~icons(
-          iconUrl = paste0("icons/",iconFiles()[as.character(Classe)]),
-          iconWidth = 20,
-          iconHeight = 20,
-          iconAnchorX = 10,
-          iconAnchorY = 0
-        ),
-        popup = ~paste(
-          "<b>Estação:</b>", ESTACAO, "<br>",
-          "<b>Teor de", input$variable, ":</b>", round(get(input$variable), 2), "<br>"
-        ),
-        group = "estações"
-      ) |>
-      addLayersControl(
-        baseGroups = c("Esri World Shaded Relief", "Open Street Map"),
-        overlayGroups = c("estações", "bacias", "geologia", "rios"),
-        options = layersControlOptions(collapsed = FALSE)
-      ) |>
-      hideGroup(c("geologia", "rios", "estações")) |>  # Ocultar os grupos por padrão
-      leafem::addMouseCoordinates() |>
-      mapOptions(zoomToLimits = "first")
-  })
+    pal_legenda <- colorFactor(
+      palette = rev(cores_fixas_class[classes_presentes]),  # Inverte a ordem das cores
+      domain = classes_presentes
+    )
+    
+  }else{    
+    pal <- colorFactor(
+      palette = cores_fixas_class1[classes_presentes],  # Filtrar e ordenar as cores das classes presentes
+      domain = classes_presentes  # Define o domínio como as classes presentes
+    )
+    
+    pal_legenda <- colorFactor(
+      palette = rev(cores_fixas_class1[classes_presentes]),  # Inverte a ordem das cores
+      domain = classes_presentes
+    )}
+  
+  pal_geologia <- colorFactor(
+    palette = cores_fixas_geo,  # Inverte a ordem das cores
+    domain = legenda_geo$NOME
+  )
+  # Juntar os dados espaciais de 'bacias' com os dados classificados e filtra nas
+  bacias_classificadas <- bacias |>
+    dplyr::left_join(dados_classificados, by = "ID") |> 
+    dplyr::filter(!is.na(Classe))
+  
+  # Criar o mapa 
+  leaflet(bacias_classificadas, options = leafletOptions(minZoom = 5, maxZoom = 22)) |>
+    setView(lng = ws_clong, lat = ws_clat, zoom = 10) |>
+    addTiles(group = "Open Street Map") |>
+    addProviderTiles(providers$Esri.WorldShadedRelief, 
+                     group = "Esri World Shaded Relief") |>
+    addPolygons(
+      fillColor = ~pal(Classe),  # Aplica as cores fixas às classes presentes
+      weight = 2,
+      opacity = 0.5,
+      color = "white",
+      dashArray = "3",
+      fillOpacity = 0.7,
+      popup = ~paste(
+        "<b>Estação:</b>", ESTACAO, "<br>",
+        "<b>Teor de", input$variable, ":</b>", round(get(input$variable), 2), "<br>"
+      ),
+      group = "bacias"
+    ) |>
+    addPolygons(data = lito_geo,
+                stroke = TRUE,         # Mostra a borda
+                color = "black",           # Cor da borda
+                weight = 1,              # Espessura da borda
+                fillOpacity = 0.5,
+                fillColor = ~RGB,         # Usa a coluna RGB para preencher
+                group = "geologia",
+                popup = ~paste("Nome da Unidade: ", NOME, "<br>")
+    ) |>
+    addMiniMap(
+      tiles = providers$Esri.WorldStreetMap,
+      toggleDisplay = TRUE, position = "topleft",
+      width = 100,
+      height = 100
+    ) |>
+    addPolylines(data = rios_processed(), group = "rios", weight = 1, color = "blue") |>
+    addMarkers(
+      lng = ~LONG_DEC, lat = ~LAT_DEC,
+      icon = ~icons(
+        iconUrl = paste0("icons/",iconFiles()[as.character(Classe)]),
+        iconWidth = 20,
+        iconHeight = 20,
+        iconAnchorX = 10,
+        iconAnchorY = 0
+      ),
+      popup = ~paste(
+        "<b>Estação:</b>", ESTACAO, "<br>",
+        "<b>Teor de", input$variable, ":</b>", round(get(input$variable), 2), "<br>"
+      ),
+      group = "estações"
+    ) |>
+    addLayersControl(
+      baseGroups = c("Esri World Shaded Relief", "Open Street Map"),
+      overlayGroups = c("estações", "bacias", "geologia", "rios"),
+      options = layersControlOptions(collapsed = FALSE)
+    ) |>
+    hideGroup(c("geologia", "rios", "estações")) |>  # Ocultar os grupos por padrão
+    leafem::addMouseCoordinates() |>
+    mapOptions(zoomToLimits = "first")
+})
+
   
   # Observar eventos de alternância de camadas ---------------------------------
   observeEvent(c(input$mymap_groups, input$variable, input$classification_type,  myjob_upload()),{
