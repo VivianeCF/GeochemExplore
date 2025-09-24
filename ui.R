@@ -142,7 +142,7 @@ tabItem(
         img(src = "logo.jpg", width = 100, units = "%", alt = "Sua Foto", class = "logo-image"),
         h2("Informações do Aplicativo"),
         p("O aplicativo foi desenvolvido pelo Serviço Geológico do Brasil/CPRM para a comunidade geocientífica. Ele permite que o usuário carregue dados e realize análises, utilizando os seguintes arquivos de entrada:"),
-    h3("Arquivos de demonstração"),
+    h4("Arquivos de demonstração"),
         p("Para facilitar o uso do aplicativo, uma pasta chamada 'inputs/' foi criada na raiz do aplicativo. 
         Esta pasta contém arquivos de exemplo que podem ser usados para testar as funcionalidades do aplicativo sem a 
         necessidade de carregar seus próprios dados."),
@@ -150,44 +150,45 @@ tabItem(
         p("FALEIROS, Frederico Meira; PAVAN, Mauricio. Geologia e recursos minerais da folha Eldorado Paulista SG.22-X-B-VI: escala 1:100.000: estados de São Paulo e Paraná. São Paulo: CPRM, 2013. Programa Geologia do Brasil (PGB)."),
         p("Disponível em: <https://rigeo.sgb.gov.br/handle/doc/11525>."),
 
-    h3("Arquivos de Tabela (.csv)"),
+    h4("Arquivos de Tabela (.csv)"),
     tags$ul(
       tags$li(
-        tags$strong("mydata_upload (Dados de Geoquímica)"),
+        tags$strong("mydata (Dados de Geoquímica)"),
         ": Este arquivo deve conter os dados de geoquímica para análise, incluindo as coordenadas de cada ponto amostral. É a base para as análises e classificações do aplicativo."
       ),
       tags$li(
-        tags$strong("myjob_upload (Dados do Trabalho)"),
+        tags$strong("myjob (Dados do Trabalho)"),
         ": Este arquivo de metadados serve para vincular a base geoquímica às informações específicas do trabalho, como o código do projeto, data e outras referências."
       ),
       tags$li(
-        tags$strong("mylitho_upload (Dados de Litologia)"),
+        tags$strong("mylitho (Dados de Litologia)"),
         ": Contém informações litológicas de cada ponto de amostra, permitindo que a análise geoquímica seja contextualizada com a geologia local."
       ),
       tags$li(
-        tags$strong("mylegend_upload (Legenda)"),
+        tags$strong("mylegend (Legenda)"),
         ": Este arquivo é usado para definir a simbologia e a legenda para os mapas e gráficos gerados, padronizando a visualização de acordo com as especificações do usuário."
       )
     ),
     
-    h3("Arquivos de Geometria (.shp)"),
+    h4("Arquivos de Geometria (.shp)"),
     tags$ul(
       tags$li(
-        tags$strong("mygeology_upload (Geologia)"),
+        tags$strong("mygeology (Geologia)"),
         ": Este é um arquivo de forma (.shp) contendo polígonos que representam as unidades geológicas da área de estudo. A importação deste arquivo é essencial para a criação do mapa geológico."
       ),
       tags$li(
-        tags$strong("ws_upload (Bacias Hidrográficas)"),
+        tags$strong("mywatershed (Bacias Hidrográficas)"),
         ": Este arquivo de forma (.shp) representa as bacias hidrográficas. A bacia é a área de captação de água que drena para um ponto específico. O aplicativo usa este arquivo para realizar análises de bacias e contextualizar os dados geoquímicos."
       ),
       tags$li(
-        tags$strong("pt_upload (Pontos de Amostra)"),
-        ": Representa os pontos de amostra em campo. Ele pode ser usado para importar os pontos de geoquímica e sua localização para a análise."
+        tags$strong("myoutlet (Estações de Amostragem)"),
+        ": Representa a localização das estações amostradas. Este arquivo de forma (.shp) permite a visualização dos pontos de coleta de dados geoquímicos no mapa."
       ),
       tags$li(
-        tags$strong("rios_upload (Rede de Drenagem)"),
+        tags$strong("mystream (Rede de Drenagem)"),
         ": Este arquivo de forma (.shp) representa a rede de drenagem (rios e córregos). A visualização desta camada é crucial para entender o fluxo de água e as relações com os dados geoquímicos."
-      ),
+      )
+    ),
     h3("Tipos de Classificação"),
         p("O aplicativo oferece três métodos de classificação para os dados geoquímicos:"),
       tags$ul(
@@ -197,7 +198,7 @@ tabItem(
           "Baseado nos limiares do boxplot segundo o método Tuckey;"),
         
         tags$li(
-          tags$strong("MAD (Median absolute deviation): "),
+          tags$strong("MAD (Median Absolute Deviation): "),
           "Método mais robusto baseado nos valores de mediana e mad;"),
         tags$li(
           tags$strong("C-A (Concentração - Área): "),
@@ -215,6 +216,6 @@ tabItem(
         p("Contato: viviane.ferrari@sgb.gov.br")
       )
     )
-  )
+  
 )
 )
