@@ -141,8 +141,10 @@ tabItem(
         tabName = "info",
         img(src = "logo.jpg", width = 100, units = "%", alt = "Sua Foto", class = "logo-image"),
         h2("Informações do Aplicativo"),
-        p("O aplicativo foi desenvolvido pelo Serviço Geológico do Brasil/CPRM para a comunidade geocientífica. Ele permite que o usuário carregue dados e realize análises, utilizando os seguintes arquivos de entrada:"),
-    h4("Arquivos de demonstração"),
+        p("O aplicativo foi desenvolvido pelo Serviço Geológico do Brasil/CPRM para a comunidade geocientífica. Ele permite que o usuário carregue dados e realize análises."),
+      h3("Arquivos de entrada"),
+        p("O aplicativo aceita arquivos nos formatos .csv e .shp."),
+      h4("Arquivos de demonstração"),
         p("Para facilitar o uso do aplicativo, uma pasta chamada 'inputs/' foi criada na raiz do aplicativo. 
         Esta pasta contém arquivos de exemplo que podem ser usados para testar as funcionalidades do aplicativo sem a 
         necessidade de carregar seus próprios dados."),
@@ -150,21 +152,21 @@ tabItem(
         p("FALEIROS, Frederico Meira; PAVAN, Mauricio. Geologia e recursos minerais da folha Eldorado Paulista SG.22-X-B-VI: escala 1:100.000: estados de São Paulo e Paraná. São Paulo: CPRM, 2013. Programa Geologia do Brasil (PGB)."),
         p("Disponível em: <https://rigeo.sgb.gov.br/handle/doc/11525>."),
 
-    h4("Arquivos de Tabela (.csv)"),
-    tags$ul(
-      tags$li(
-        tags$strong("mydata (Dados de Geoquímica)"),
+      h4("Arquivos de Tabela (.csv)"),
+       tags$ul(
+        tags$li(
+         tags$strong("mydata (Dados de Geoquímica)"),
         ": Este arquivo deve conter os dados de geoquímica para análise, incluindo as coordenadas de cada ponto amostral. É a base para as análises e classificações do aplicativo."
       ),
-      tags$li(
-        tags$strong("myjob (Dados do Trabalho)"),
+       tags$li(
+         tags$strong("myjob (Dados do Trabalho)"),
         ": Este arquivo de metadados serve para vincular a base geoquímica às informações específicas do trabalho, como o código do projeto, data e outras referências."
       ),
-      tags$li(
-        tags$strong("mylitho (Dados de Litologia)"),
+       tags$li(
+         tags$strong("mylitho (Dados de Litologia)"),
         ": Contém informações litológicas de cada ponto de amostra, permitindo que a análise geoquímica seja contextualizada com a geologia local."
       ),
-      tags$li(
+       tags$li(
         tags$strong("mylegend (Legenda)"),
         ": Este arquivo é usado para definir a simbologia e a legenda para os mapas e gráficos gerados, padronizando a visualização de acordo com as especificações do usuário."
       )
@@ -189,7 +191,7 @@ tabItem(
         ": Este arquivo de forma (.shp) representa a rede de drenagem (rios e córregos). A visualização desta camada é crucial para entender o fluxo de água e as relações com os dados geoquímicos."
       )
     ),
-    h3("Tipos de Classificação"),
+     h3("Tipos de Classificação"),
         p("O aplicativo oferece três métodos de classificação para os dados geoquímicos:"),
       tags$ul(
         
