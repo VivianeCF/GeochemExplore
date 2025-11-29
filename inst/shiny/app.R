@@ -368,13 +368,46 @@ mylitho_upload <- reactive({
 mylegend_upload <- reactive({
   if (input$use_predefined_files) {
     path <- file.path("inputs", "mylegend.csv")
-    read_csv2(path, locale = locale(encoding = "latin1"))
+    df <- read_csv2(path, locale = locale(encoding = "latin1"))
   } else {
     req(input$mylegend_upload)
-    read_csv2(input$mylegend_upload$datapath, locale = locale(encoding = "latin1"))
+    df <- read_csv2(input$mylegend_upload$datapath, locale = locale(encoding = "latin1"))
   }
-})
 
+  # Normaliza nomes (remoção de acentos/espacos) para detectar RANGE / SIGLA / RGB
+  nm_raw <- names(df)
+  nm_norm <- toupper(trimws(iconv(nm_raw, from = "latin1", to = "ASCII//TRANSLIT")))
+
+  # se existir coluna RANGE (qualquer variante), renomeia para SIGLA
+  idx_range <- which(nm_norm == "RANGE")
+  if (length(idx_range)) names(df)[idx_range[1]] <- "SIGLA"
+
+  # Se houver outra variação comum (ex: 'SIGLA '), tenta também
+  idx_sigla <- which(nm_norm == "SIGLA")
+  if (length(idx_sigla)) names(df)[idx_sigla[1]] <- "SIGLA"
+
+  # Normaliza coluna RGB se existir em variantes ('RGB','Cor','COLOR'...)
+  idx_rgb <- which(nm_norm %in% c("RGB", "COR", "COLOR", "COL"))
+  if (length(idx_rgb)) names(df)[idx_rgb[1]] <- "RGB"
+
+  # Garantir colunas mínimas
+  if (!"SIGLA" %in% names(df)) df$SIGLA <- NA_character_
+  if (!"RGB" %in% names(df)) df$RGB <- NA_character_
+
+  # Normaliza valores RGB para #RRGGBB (opcional, mas útil)
+  df <- df |>
+    dplyr::mutate(
+      SIGLA = as.character(SIGLA),
+      RGB = as.character(RGB),
+      RGB = toupper(trimws(iconv(RGB, from = "latin1", to = "ASCII//TRANSLIT"))),
+      RGB = ifelse(grepl("^#", RGB), RGB, paste0("#", RGB)),
+      RGB = gsub("[^#A-F0-9]", "", RGB),
+      RGB = substr(RGB, 1, 7),
+      RGB = ifelse(grepl("^#[A-F0-9]{6}$", RGB), RGB, NA_character_)
+    )
+
+  df
+})
 myjob_upload <- reactive({
   if (input$use_predefined_files) {
     path <- file.path("inputs", "myjob.csv")
@@ -409,31 +442,57 @@ myjob_upload <- reactive({
   # 3. Só processe os dados se upload_completo() for TRUE
   mydata_processed <- reactive({
     req(upload_completo())
-    mydata <- dplyr::left_join(mydata_upload(), mylitho_upload(), by = "ID")
-    mydata <- dplyr::left_join(mydata, mylegend_upload(), by = "Geo_Reg")
-    mydata$Geo_Reg <- factor(mydata$Geo_Reg)
-    sm <- summary(mydata$Geo_Reg)
-    sm <- data.frame(Geo_Reg = names(sm), cont = sm)
-    mydata <- dplyr::left_join(mydata, sm, by = "Geo_Reg")
+    mydata <- dplyr::left_join(mydata_upload(), mylitho_upload(), by =  "VALUE")
+    mydata <- dplyr::left_join(mydata, mylegend_upload(), by = "Geo_cod")
+    mydata$Geo_cod <- factor(mydata$Geo_cod)
+    sm <- summary(mydata$Geo_cod)
+    sm <- data.frame(Geo_cod = names(sm), cont = sm)
+    mydata <- dplyr::left_join(mydata, sm, by = "Geo_cod")
     mydata_sub <- subset(mydata, cont >= 5)
-    mydata_sub <- mydata_sub[order(mydata_sub$Geo_Reg), ]
-    mydata_sub$Geo_Reg <- factor(mydata_sub$Geo_Reg,
-                                 levels = sort(as.numeric(as.character(unique(mydata_sub$Geo_Reg)))))
+    mydata_sub <- mydata_sub[order(mydata_sub$Geo_cod), ]
+    mydata_sub$Geo_cod <- factor(mydata_sub$Geo_cod,
+                                 levels = sort(as.numeric(as.character(unique(mydata_sub$Geo_cod)))))
     
     return(mydata_sub)
   })
   
+  # Helper local: encontra coluna por nome (tolerante a case/acentos/BOM)
+  find_col <- function(df, target) {
+    nm <- names(df)
+    nm_norm <- toupper(trimws(iconv(nm, from = "latin1", to = "ASCII//TRANSLIT")))
+    idx <- which(nm_norm == toupper(target))
+    if (length(idx)) nm[idx[1]] else NULL
+  }
+
+ 
   lito_geo_processed <- reactive({
     req(upload_completo())
-    mygeology_upload()
+    lito_geo <- mygeology_upload()
+    lito_geo <- sf::st_make_valid(lito_geo)
+    legenda_geo <- mylegend_upload()
+  lito_geo <- dplyr::left_join(lito_geo, legenda_geo, by = "SIGLA")
+    
+    # Harmoniza CRS com watershed se disponível
+    try({
+      ws_crs <- sf::st_crs(ws_upload())
+      if (!is.na(ws_crs)) {
+        lito_geo <- sf::st_transform(lito_geo, ws_crs)
+      } else {
+        lito_geo <- sf::st_transform(lito_geo, 4326)
+      }
+    }, silent = TRUE)
+
+    message(sprintf("lito_geo_processed: RGB valid for %d of %d features", sum(!is.na(lito_geo$RGB)), nrow(lito_geo)))
+    lito_geo
   })
   
   ws_bacias <- reactive({
     req(upload_completo())
     ws_geometry <- sf::st_geometry(ws_upload())
+    ws_geometry <- sf::st_make_valid(ws_geometry)
     ws_df <- sf::st_drop_geometry(ws_upload())
-    bacias <- dplyr::left_join(ws_df, pt_upload(), by = "ID")
-    bacias <- dplyr::left_join(bacias, mydata_processed(), by = "ID")
+    bacias <- dplyr::left_join(ws_df, pt_upload(), by = "VALUE")
+    bacias <- dplyr::left_join(bacias, mydata_processed(), by = "VALUE")
     sf::st_sf(bacias, geometry = ws_geometry)
   })
   
@@ -505,7 +564,12 @@ myjob_upload <- reactive({
   # Set fixed colors and classes
   cores_fixas_geo <- reactive({
     req(mylegend_upload())
-    setNames(mylegend_upload()$RGB, mylegend_upload()$Geo_Reg)
+    lg <- mylegend_upload()
+    # prefer Geo_cod, senão SIGLA, senão vazio
+    codes <- if ("Geo_cod" %in% names(lg)) as.character(lg$Geo_cod) else if ("SIGLA" %in% names(lg)) as.character(lg$SIGLA) else character(0)
+    cols  <- if ("RGB" %in% names(lg)) as.character(lg$RGB) else rep(NA_character_, length(codes))
+    if (length(codes) == 0) named <- setNames(character(0), character(0) ) else named <- setNames(cols, codes)
+    named
   })
   
   pal_cod_ini <- c("#00007F", "#0000FF", "#007FFF",
@@ -552,14 +616,29 @@ myjob_upload <- reactive({
     req(processed_data(), ws_bacias(), lito_geo_processed(), mylegend_upload(), iconFiles())
     bacias <- ws_bacias()
     # Corrige geometrias inválidas antes de calcular o centroide
-    bacias_valid <- sf::st_make_valid(bacias)
-    centroide <- sf::st_centroid(sf::st_union(sf::st_geometry(bacias_valid)))
+    bacias <- sf::st_make_valid(bacias)
+
+    # Compute centroid robustly: temporarily disable s2 (some invalid/degenerate
+    # geometries cause s2 to error) and fall back to bbox center if centroid fails.
+    s2_orig <- sf::sf_use_s2()
+    if (isTRUE(s2_orig)) sf::sf_use_s2(FALSE)
+    centroide <- tryCatch({
+      sf::st_centroid(sf::st_union(sf::st_geometry(bacias)))
+    }, error = function(e) {
+      # Fallback: use bbox center as a safe centroid approximation
+      bb <- as.numeric(sf::st_bbox(bacias))
+      cx <- (bb[1] + bb[3]) / 2
+      cy <- (bb[2] + bb[4]) / 2
+      sf::st_sfc(sf::st_point(c(cx, cy)), crs = sf::st_crs(bacias))
+    })
+    if (isTRUE(s2_orig)) sf::sf_use_s2(TRUE)
+
     ws_clong <- sf::st_coordinates(centroide)[1]
     ws_clat  <- sf::st_coordinates(centroide)[2]
     
     lito_geo <- lito_geo_processed()
     legenda_geo <- mylegend_upload()
-    
+
     dados_classificados <- processed_data()$classificados
     limiares <- processed_data()$limiares  # Obter os limiares das classes
     
@@ -592,11 +671,11 @@ myjob_upload <- reactive({
     
     pal_geologia <- colorFactor(
       palette = cores_fixas_geo,  # Inverte a ordem das cores
-      domain = legenda_geo$NOME
+      domain = legenda_geo$SIGLA
     )
     # Juntar os dados espaciais de 'bacias' com os dados classificados e filtra nas
     bacias_classificadas <- bacias |>
-      dplyr::left_join(dados_classificados, by = "ID") |> 
+      dplyr::left_join(dados_classificados, by = "VALUE") |> 
       dplyr::filter(!is.na(Classe))
     
     # Criar o mapa 
@@ -619,13 +698,13 @@ myjob_upload <- reactive({
         group = "bacias"
       ) |>
       addPolygons(data = lito_geo,
-                  stroke = TRUE,                # Mostra a borda
-                  color = "black",              # Cor da borda
+                  stroke = FALSE,                # Mostra a borda
+                  color = NA,              # Cor da borda
                   weight = 1,                   # Espessura da borda
                   fillOpacity = 0.5,
                   fillColor = ~RGB,             # Usa a coluna RGB para preencher
                   group = "geologia",
-                  popup = ~paste("Nome da Unidade: ", NOME, "<br>")
+                  popup = ~paste("Unidade: ", SIGLA, "<br>")
       ) |>
       addMiniMap(
         tiles = providers$Esri.WorldStreetMap,
@@ -663,12 +742,12 @@ myjob_upload <- reactive({
   observeEvent(c(input$mymap_groups, input$variable, input$classification_type,  myjob_upload()),{
     req(processed_data(), input$variable, cores_fixas_class, cores_fixas_class1, ws_bacias(), 
         iconFiles, lito_geo_processed(), cores_fixas_geo, mylegend_upload())
+    legenda_geo <- mylegend_upload()
+    lito_geo <- lito_geo_processed()
     
     myjob <- myjob_upload()
     bacias <- ws_bacias()
-    lito_geo <- lito_geo_processed()
-    legenda_geo <- mylegend_upload()
-    
+
     # Obter os dados processados
     dados_classificados <- processed_data()$classificados
     limiares <- processed_data()$limiares  # Obter os limiares das classes
@@ -812,7 +891,7 @@ myjob_upload <- reactive({
     if ("geologia" %in% input$mymap_groups) {
       proxy <- leafletProxy("mymap")
       cores_legenda <- unique(legenda_geo$RGB)
-      nomes_legenda <- unique(legenda_geo$NOME)
+      nomes_legenda <- unique(legenda_geo$SIGLA)
       
       # Criar o HTML para os itens da legenda com cores e nomes
       itens_legenda_html <- paste0(
@@ -911,10 +990,10 @@ myjob_upload <- reactive({
     mydata <- mydata_processed()  # Adicione esta linha
     
     dados_classificados  <- left_join(mydata, processed_data()$classificados, 
-                                      by = "ID")
+                                      by = "VALUE")
     
     dados_classificados  <- left_join(sf::st_drop_geometry(pt)[,-ncol(pt)], 
-                                      dados_classificados, by = "ID")
+                                      dados_classificados, by = "VALUE")
     
     # Selecionar apenas as colunas relevantes
     filtered_data <- dados_classificados[, c("NUM_LAB", "ESTACAO", "LONG_DEC",

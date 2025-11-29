@@ -168,7 +168,7 @@ limiares_classifica <- function(data, myjob, elemento, tipo, nb) {
   
   # Rotaciona a tabela 
   dados_classificados <- data |> 
-    dplyr::select(ID, Area_km2, all_of(elemento)) |>  # Seleciona as colunas relevantes
+    dplyr::select(VALUE, Area_bacia, all_of(elemento)) |>  # Seleciona as colunas relevantes
     tidyr::pivot_longer(
       cols = all_of(elemento),  # Especifica a coluna do elemento selecionado
       names_to = "elemento", 
@@ -178,7 +178,7 @@ limiares_classifica <- function(data, myjob, elemento, tipo, nb) {
   # Calcula limiares com base no tipo
   x <- dados_classificados$value
   breaks <- switch(as.character(tipo),
-                   "1" = lim_calc_tipo1(x, dados_classificados$Area_km2),
+                   "1" = lim_calc_tipo1(x, dados_classificados$Area_bacia),
                    "2" = lim_calc_tipo2(x),
                    "3" = lim_calc_tipo3(x),
                    stop("Tipo inválido"))
@@ -455,19 +455,19 @@ bxp_litologia <- function(data, elemento, cores_fixas, myjob){
   data <- data[!is.na(data[[elemento]]), ]
   
   # Reordenar fatores para litologias
-  lito <- reorder(factor(data$Geo_Reg), data[[elemento]], FUN = median)
-  unidade <- reorder(factor(data$NOME), data[[elemento]], FUN = median)
+  lito <- reorder(factor(data$Geo_cod), data[[elemento]], FUN = median)
+  unidade <- reorder(factor(data$SIGLA), data[[elemento]], FUN = median)
   teor <- data[[elemento]]
 
   # Criação do gráfico
   p <- ggplot(data, aes(x = unidade, 
                        y = teor,
-                       text = paste0("Unidade: ", NOME, "<br>",
-                                     "Litologia: ", Geo_Reg, "<br>",
+                       text = paste0("Unidade: ", SIGLA, "<br>",
+                                     "Litologia: ", Geo_cod, "<br>",
                                      "Teor: ", format(teor, scientific = FALSE, digits = 2)))) +
-    geom_boxplot(aes(fill = Geo_Reg), width = .5) +  # Usar Geo_Reg para cores
+    geom_boxplot(aes(fill = Geo_cod), width = .5) +  # Usar Geo_cod para cores
     scale_fill_manual(
-      values = cores_fixas[sort(names(cores_fixas))],  # Ordenar cores pela Geo_Reg
+      values = cores_fixas[sort(names(cores_fixas))],  # Ordenar cores pela Geo_cod
       name = "Litologia"
     ) +
     scale_y_continuous(trans = 'log10') +
@@ -508,11 +508,11 @@ ca_plot <- function(dados_classificados, myjob,  limiares,elemento, cores_fixas_
   dig <-  myjob[myjob$EL==elemento, "DIG"]
   
   # elimina registros sem área de bacia
-  data_select <- dados_classificados[!is.na(dados_classificados$Area_km2),]
+  data_select <- dados_classificados[!is.na(dados_classificados$Area_bacia),]
   
   # Calcula a área acumulada
   df <- data_select[order(data_select$value, decreasing = TRUE),] %>% 
-    mutate(cum_area = cumsum(Area_km2)) 
+    mutate(cum_area = cumsum(Area_bacia)) 
   
   # Rotaciona a tabela 
   
@@ -541,23 +541,42 @@ ca_plot <- function(dados_classificados, myjob,  limiares,elemento, cores_fixas_
   titulo_mapa <- myjob[myjob$EL == elemento, "Nome"]
   
   # Constroi grafico com as quebras (linhas verticais)
+  # helper to draw vertical segments at break x positions safely
+  vsegment_safe <- function(xval, Xvec, Yvec) {
+    # remove NA and sort by X
+    ok <- !is.na(Xvec) & !is.na(Yvec)
+    if (sum(ok) < 2) return(NULL)
+    Xs <- Xvec[ok]
+    Ys <- Yvec[ok]
+    ord <- order(Xs)
+    Xs <- Xs[ord]
+    Ys <- Ys[ord]
+    # remove duplicated Xs for approx
+    keep <- !duplicated(Xs)
+    Xs <- Xs[keep]
+    Ys <- Ys[keep]
+    yend <- tryCatch(approx(Xs, Ys, xout = xval, rule = 2)$y, error = function(e) NA_real_)
+    annotate("segment", x = xval, xend = xval, y = -Inf, yend = yend,
+             linetype = 2, col = "red", inherit.aes = FALSE)
+  }
+
   p1 <-   ggplot(DF, aes(x = X, y = Y, color = as.factor(class))) + 
     geom_point(size=0.5) + 
-    vsegment(breaks[1], X, log10(Y)) +
-    vsegment(breaks[2], X, log10(Y)) +
-    vsegment(breaks[3], X, log10(Y)) +
-    # vsegment(breaks[4], X, log10(Y)) + 
+    vsegment_safe(breaks[1], X, log10(Y)) +
+    vsegment_safe(breaks[2], X, log10(Y)) +
+    vsegment_safe(breaks[3], X, log10(Y)) +
+    # vsegment_safe(breaks[4], X, log10(Y)) + 
     geom_smooth(method = "lm", fill = NA, formula = 'y ~ x', lwd =0.4) +
     labs(x=paste0(elemento, " (",  unidade, ")"), 
          y = expression( Area ~ "(" ~ km^2 ~")")) +
-    scale_color_manual(name="Class",
-                       labels = c("Baixo Background", "Background",  
-                                  "Alto Background", "Anomalia"),
-                       values = pal_cod,
-                       guide = guide_legend(nrow = 4, reverse = FALSE, 
-                                            label.position = "right", 
-                                            direction =  "vertical", 
-                                            byrow = FALSE, col = 1 )) + 
+  scale_color_manual(name="Class",
+             labels = c("Baixo Background", "Background",  
+                  "Alto Background", "Anomalia"),
+             values = pal_cod,
+             guide = guide_legend(nrow = 4, reverse = FALSE, 
+                      label.position = "right", 
+                      direction =  "vertical", 
+                      byrow = FALSE, ncol = 1 )) + 
     scale_x_continuous(transform = "log10")  +
     ggtitle(titulo_mapa) + theme(,
                                  legend.title = element_text(size = 14, face = "bold"),
@@ -624,14 +643,14 @@ hist_litologia <- function(data, elemento, cores_fixas){
   
   # Reordenar fatores para litologias
   teor <- data[[elemento]]
-  unidade <- reorder(factor(data$NOME), teor, FUN = median)
+  unidade <- reorder(factor(data$SIGLA), teor, FUN = median)
   
   # Crie o histograma
   p <- ggplot(data, aes(x = teor,
-                        text = paste0("Unidade: ", NOME, "<br>",
-                                      "Litologia: ", Geo_Reg, "<br>",
+                        text = paste0("Unidade: ", SIGLA, "<br>",
+                                      "Litologia: ", Geo_cod, "<br>",
                                       "Teor: ", format(teor, scientific = FALSE, digits = 2)))) +
-    geom_histogram(aes(fill = Geo_Reg), na.rm = TRUE, color = "black") +
+    geom_histogram(aes(fill = Geo_cod), na.rm = TRUE, color = "black") +
     scale_fill_manual(values = cores_fixas , name = "Unidade Litológica") +
     scale_x_continuous(trans = 'log10') +
     labs(title = "Histograma com Cores da litologia",
