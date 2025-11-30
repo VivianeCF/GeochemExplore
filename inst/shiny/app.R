@@ -15,7 +15,8 @@ caminho_arquivo <- "app.R"
 info_arquivo <- file.info(caminho_arquivo)
 
 # 3. Formate a data e hora para exibição
-data_modificacao <- format(info_arquivo$mtime, "%d/%m/%Y às %H:%M:%S")
+data_modificacao <- format(info_arquivo$mtime, "%d/%m/%Y às %H:%M:%S", 
+        tz = "America/Sao_Paulo")
 
 # Interface do usuário --------------------------------------------------------
 ui <- dashboardPage(
