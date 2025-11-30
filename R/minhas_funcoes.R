@@ -569,7 +569,7 @@ ca_plot <- function(dados_classificados, myjob,  limiares,elemento, cores_fixas_
     geom_smooth(method = "lm", fill = NA, formula = 'y ~ x', lwd =0.4) +
     labs(x=paste0(elemento, " (",  unidade, ")"), 
          y = expression( Area ~ "(" ~ km^2 ~")")) +
-  scale_color_manual(name="Class",
+  scale_color_manual(name="Classificação",
              labels = c("Baixo Background", "Background",  
                   "Alto Background", "Anomalia"),
              values = pal_cod,

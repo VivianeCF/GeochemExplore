@@ -184,7 +184,7 @@ ui <- dashboardPage(
       tabItem(
         tabName = "info",
         h2("Informações do Aplicativo"),
-        p("O aplicativo foi desenvolvido pelo Serviço Geológico do Brasil/CPRM para a comunidade geocientífica. Ele permite que o usuário carregue dados e realize análises."),
+        p("O aplicativo foi desenvolvido pelo Serviço Geológico do Brasil/CPRM para a comunidade geocientífica. Ele permite que o usuário carregue dados e realize análises exploratórias."),
 
         h3("Funcionalidades do Aplicativo"),
 
