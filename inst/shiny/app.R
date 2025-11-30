@@ -158,6 +158,7 @@ tabItem(
         DT::dataTableOutput("dataTable")
       ),
       # Aba Informações do aplicativo
+      # Aba Informações do aplicativo
       tabItem(
         tabName = "info",
         img(src = "icons/logo.jpg", width = 100, units = "%", alt = "Sua Foto", class = "logo-image"),
@@ -174,40 +175,40 @@ tabItem(
     h3("Arquivos de Tabela (.csv)"),
     tags$ul(
       tags$li(
-        tags$strong("mydata_upload (Dados de Geoquímica)"),
+        tags$strong("Resultados analíticos"),
         ": Este arquivo deve conter os dados de geoquímica para análise, incluindo as coordenadas de cada ponto amostral. É a base para as análises e classificações do aplicativo."
       ),
       tags$li(
-        tags$strong("myjob_upload (Dados do Trabalho)"),
-        ": Este arquivo de metadados serve para vincular a base geoquímica às informações específicas do trabalho, como o código do projeto, data e outras referências."
+        tags$strong("Condiçãos Analíticas"),
+        ": Este arquivo contem as informações de cada elemento analisado como: unidade de medida, nome do elemento, limites de detecção, composição média do UCC (Upper Continental Croust)."
       ),
       tags$li(
-        tags$strong("mylitho_upload (Dados de Litologia)"),
-        ": Contém informações litológicas de cada ponto de amostra, permitindo que a análise geoquímica seja contextualizada com a geologia local."
+        tags$strong("Litologia das estações"),
+        ": Contém informações litológicas de cada estação de coleta de amostra, permitindo que a análise geoquímica seja contextualizada com a geologia local."
       ),
       tags$li(
-        tags$strong("mylegend_upload (Legenda)"),
-        ": Este arquivo é usado para definir a simbologia e a legenda para os mapas e gráficos gerados, padronizando a visualização de acordo com as especificações do usuário."
+        tags$strong("Legenda da simbologia das litologias"),
+        ": Usado para definir a simbologia e a legenda do mapa geológico, indica a descrição ou o nome da unidade, idade e cor RGB para cada unidade do mapa."
       )
     ),
     
     h3("Arquivos de Geometria (.shp)"),
     tags$ul(
       tags$li(
-        tags$strong("mygeology_upload (Geologia)"),
-        ": Este é um arquivo de forma (.shp) contendo polígonos que representam as unidades geológicas da área de estudo. A importação deste arquivo é essencial para a criação do mapa geológico."
+        tags$strong("Geologia da área de estudo"),
+        ": Arquivo de feição poligonal (.shp) contendo polígonos que representam as unidades geológicas da área de estudo."
       ),
       tags$li(
-        tags$strong("ws_upload (Bacias Hidrográficas)"),
-        ": Este arquivo de forma (.shp) representa as bacias hidrográficas. A bacia é a área de captação de água que drena para um ponto específico. O aplicativo usa este arquivo para realizar análises de bacias e contextualizar os dados geoquímicos."
+        tags$strong("Sub-bacias hidrográficas"),
+        ": Arquivo de feição poligonal (.shp) que representa as sub-bacias hidrográficas. O aplicativo usa este arquivo para realizar análises de bacias e contextualizar os dados geoquímicos."
       ),
       tags$li(
-        tags$strong("pt_upload (Pontos de Amostra)"),
-        ": Representa os pontos de amostra em campo. Ele pode ser usado para importar os pontos de geoquímica e sua localização para a análise."
+        tags$strong("Estações de coleta"),
+        ": Arquivo de feição pontual que representa os locais de coleta de amostra no campo. Contem as coordenadas e a identificação das estações."
       ),
       tags$li(
-        tags$strong("rios_upload (Rede de Drenagem)"),
-        ": Este arquivo de forma (.shp) representa a rede de drenagem (rios e córregos). A visualização desta camada é crucial para entender o fluxo de água e as relações com os dados geoquímicos."
+        tags$strong("Rede de drenagem"),
+        ": Este arquivo de feição linear (.shp) representa a rede de drenagem (rios e córregos)."
       ),
     h3("Tipos de Classificação"),
         p("O aplicativo oferece três métodos de classificação para os dados geoquímicos:"),
