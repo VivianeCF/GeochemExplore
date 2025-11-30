@@ -184,7 +184,7 @@ ui <- dashboardPage(
       tabItem(
         tabName = "info",
         h2("Informações do Aplicativo"),
-        p("O aplicativo foi desenvolvido pelo Serviço Geológico do Brasil/CPRM para a comunidade geocientífica. Ele permite que o usuário carregue dados e realize análises exploratórias."),
+        p("O aplicativo foi desenvolvido para o Serviço Geológico do Brasil/CPRM e comunidade geocientífica. Ele permite que o usuário carregue dados e realize análises exploratórias dos resultados analíticos de amostras de sedimento de corrente."),
 
         h3("Funcionalidades do Aplicativo"),
 
@@ -194,7 +194,7 @@ ui <- dashboardPage(
 
         h4("Arquivos de Tabela (.csv)"),
         tags$ul(
-          tags$li(tags$strong("Resultados analíticos"), ": Este arquivo deve conter os dados de geoquímica para análise, incluindo as coordenadas de cada ponto amostral. É a base para as análises e classificações do aplicativo."),
+          tags$li(tags$strong("Resultados analíticos"), ": Este arquivo deve conter os resultados analíticos das amostras de sedimento de corrente, incluindo os números da estação e de laboratório e chave 'VALUE'. É a base para as análises e classificações do aplicativo."),
           tags$li(tags$strong("Condições Analíticas"), ": Este arquivo contem as informações de cada elemento analisado como: unidade de medida, nome do elemento, limites de detecção, composição média do UCC (Upper Continental Croust)."),
           tags$li(tags$strong("Litologia das estações"), ": Contém informações litológicas de cada estação de coleta de amostra, permitindo que a análise geoquímica seja contextualizada com a geologia local."),
           tags$li(tags$strong("Legenda da simbologia das litologias"), ": Usado para definir a simbologia e a legenda do mapa geológico, indica a descrição ou o nome da unidade, idade e cor RGB para cada unidade do mapa.")
@@ -202,9 +202,9 @@ ui <- dashboardPage(
 
         h4("Arquivos de Geometria (.shp)"),
         tags$ul(
-          tags$li(tags$strong("Geologia da área de estudo"), ": Arquivo de feição poligonal (.shp) contendo polígonos que representam as unidades geológicas da área de estudo."),
-          tags$li(tags$strong("Sub-bacias hidrográficas"), ": Arquivo de feição poligonal (.shp) que representa as sub-bacias hidrográficas. O aplicativo usa este arquivo para realizar análises de bacias e contextualizar os dados geoquímicos."),
-          tags$li(tags$strong("Estações de coleta"), ": Arquivo de feição pontual que representa os locais de coleta de amostra no campo. Contem as coordenadas e a identificação das estações."),
+          tags$li(tags$strong("Geologia da área de estudo"), ": Arquivo de feição poligonal (.shp) que representa as unidades geológicas da área de estudo."),
+          tags$li(tags$strong("Sub-bacias hidrográficas"), ": Arquivo de feição poligonal (.shp) que representa as sub-bacias hidrográficas. Contém a chave relacional 'VALUE'."),
+          tags$li(tags$strong("Estações de coleta"), ": Arquivo de feição pontual que representa os locais de coleta de amostra no campo. Contem as coordenadas e a chave 'VALUE'."),
           tags$li(tags$strong("Rede de drenagem"), ": Este arquivo de feição linear (.shp) representa a rede de drenagem (rios e córregos).")
         ),
 
