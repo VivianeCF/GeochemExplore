@@ -1,19 +1,19 @@
 SIGLA;DESCRICAO;IDADE;RGB;Geo_cod
-Q;Argila, Areia;Cenozóico;#F1FEBD;1
-Q2;Areia, Areia Arcoseana, Silte, Cascalho, Argila, Conglomerado Polimítico;Cenozóico;#FEFC87;2
-Q1;Areia, Argila, Siltito Arenoso, Argilito Síltico;Cenozóico;#F4FEE0;3
-N1;Argila, Areia, Lamito, Conglomerado, Arenito;Cenozóico;#F7FE86;4
-K1_lambda;Dunito, Clinopiroxenito, Melagabro, Nefelina Sienito, Olivina Gabro, Quartzo Monzonito, Quartzo Sienito, Ijolito, Gabro, Wehrlito, Carbonatito;Mesozóico;#00D8D8;5
-NP3C_cortado;Metassiltito, Metargilito, Metarenito Arcoseano, Metarenito, Metarcóseo, Metaconglomerado Polimítico, Brecha Cataclástica, Milonito;Paleozóico;#D8BAA8;6
-MP2;Muscovita-Biotita Xisto, Metassiltito, Metarenito, Quartzo Xisto, Metarcóseo, Metagrauvaca, Gondito, Biotita Gnaisse, Muscovita-Quartzo Xisto, Granada-Biotita Xisto, Quartzito, Rocha Calcissilicática, Xisto, Clorita Xisto, Biotita-Quartzo Xisto, Biotita Xisto, Mármore, Anfibolito;Mesoproterozóico;#B8A39B;7
-NP;Metassiltito, Metarritmito, Filito, Mármore, Quartzo-Mica Xisto, Rocha Calcissilicática, Mármore Dolomítico, Paragnaisse, Biotita Gnaisse, Anfibólio Xisto, Granada-Biotita-Muscovita-Quartzo Xisto, Quartzo Xisto, Metarenito Quartzoso, Metamarga, Xisto Carbonático, Clorita Xisto, Quartzito, Metarcóseo, Metagrauvaca, Gondito, Gnaisse;Neoproterozóico;#BFAE98;8
-NP3_gamma;Álcali-Feldspato Granito, Sienogranito, Granodiorito, Biotita Granito, Leucogranito, Biotita-Hornblenda Granito, Biotita Sienogranito, Quartzo Monzonito, Migmatito, Gnaisse, Biotita Gnaisse, Milonito, Cataclasito, Quartzo Monzodiorito, Monzogranito, Quartzo Sienito, Granito, Sienito, Hornblenda-Biotita Granito, Monzonito, Quartzo Diorito, Diorito, Turmalina Granito, Filonito;Neoproterozóico;#FB708A;9
-NP23_gamma;Granodiorito, Biotita Granito;Neoproterozóico;#FD5E66;10
-NP3;Ultramilonito, Rocha Vulcânica Intermediária, Rocha Vulcânica Máfica, Metaconglomerado Polimítico, Metassiltito, Filito, Ardósia, Biotita Granito, Biotita Gnaisse Milonítico, Metabrecha, Metaconglomerado Oligomítico, Metarenito, Metarcóseo;Neoproterozóico;#AD9A8E;11
-NP3_gamma_2I;Granitóide, Granito;Neoproterozóico;#FE9FF3;12
-NP1;Quartzo Xisto, Filito, Metaconglomerado, Rocha Metaultramáfica, Rocha Calcissilicática, Milonito;Neoproterozóico;#B49BAD;13
-MP;Metassiltito, Metarenito Conglomerático, Metarenito, Quartzito, Filito, Mármore Dolomítico, Xisto Carbonático, Mármore, Metaconglomerado Oligomítico, Metapelito, Metaconglomerado, Metacalcilutito, Metacalcarenito, Quartzo Xisto, Mármore Calcítico, Clorita Xisto, Metarenito Arcoseano, Metacalcário Calcítico, Xisto;Mesoproterozóico;#A49B97;14
-MP1;Sericita Filito Carbonoso, Metapelito, Filito, Metachert, Metassiltito, Metarritmito, Metarenito, Metamáfica, Rocha Metaultramáfica, Metamarga, Calcifilito, Mármore Calcítico, Metavulcanoclástica, Rocha Metavulcânica;Mesoproterozóico;#A99682;15
-PP;Metachert, Quartzo Xisto, Filito, Melagabro, Metapiroxenito, Metabasito, Sericita Xisto, Clorita Xisto, Xisto Magnesiano;Paleoproterozóico;#CCADC0;16
-PP2;Gnaisse, Hornblenda Gnaisse, Gnaisse Granítico, Biotita Gnaisse, Augen Gnaisse, Migmatito, Ortognaisse Tonalítico, Muscovita-Biotita Gnaisse, Protomilonito, Pegmatito, Migmatito Estromático;Paleoproterozóico;#FDA0C7;17
-A4;Ortognaisse, Migmatito, Opdalito, Enderbito, Charnockito, Metanortosito, Granulito, Gnaisse, Granodiorito, Tonalito, Diorito, Metagabro, Migmatito Estromático, Kinzigito, Anfibólio Xisto;Neoarqueano;#9590BB;18
+Q;"Argila, Areia";CenozÃ³ico;#F1FEBD;1
+Q2;"Areia, Areia Arcoseana, Silte, Cascalho, Argila, Conglomerado PolimÃ­tico";CenozÃ³ico;#FEFC87;2
+Q1;"Areia, Argila, Siltito Arenoso, Argilito SÃ­ltico";CenozÃ³ico;#F4FEE0;3
+N1;"Argila, Areia, Lamito, Conglomerado, Arenito";CenozÃ³ico;#F7FE86;4
+K1_lambda;"Dunito, Clinopiroxenito, Melagabro, Nefelina Sienito, Olivina Gabro, Quartzo Monzonito, Quartzo Sienito, Ijolito, Gabro, Wehrlito, Carbonatito";MesozÃ³ico;#00D8D8;5
+NP3C_cortado;"Metassiltito, Metargilito, Metarenito Arcoseano, Metarenito, MetarcÃ³seo, Metaconglomerado PolimÃ­tico, Brecha CataclÃ¡stica, Milonito";PaleozÃ³ico;#D8BAA8;6
+MP2;"Muscovita-Biotita Xisto, Metassiltito, Metarenito, Quartzo Xisto, MetarcÃ³seo, Metagrauvaca, Gondito, Biotita Gnaisse, Muscovita-Quartzo Xisto, Granada-Biotita Xisto, Quartzito, Rocha CalcissilicÃ¡tica, Xisto, Clorita Xisto, Biotita-Quartzo Xisto, Biotita Xisto, MÃ¡rmore, Anfibolito";MesoproterozÃ³ico;#B8A39B;7
+NP;"Metassiltito, Metarritmito, Filito, MÃ¡rmore, Quartzo-Mica Xisto, Rocha CalcissilicÃ¡tica, MÃ¡rmore DolomÃ­tico, Paragnaisse, Biotita Gnaisse, AnfibÃ³lio Xisto, Granada-Biotita-Muscovita-Quartzo Xisto, Quartzo Xisto, Metarenito Quartzoso, Metamarga, Xisto CarbonÃ¡tico, Clorita Xisto, Quartzito, MetarcÃ³seo, Metagrauvaca, Gondito, Gnaisse";NeoproterozÃ³ico;#BFAE98;8
+NP3_gamma;"Ãlcali-Feldspato Granito, Sienogranito, Granodiorito, Biotita Granito, Leucogranito, Biotita-Hornblenda Granito, Biotita Sienogranito, Quartzo Monzonito, Migmatito, Gnaisse, Biotita Gnaisse, Milonito, Cataclasito, Quartzo Monzodiorito, Monzogranito, Quartzo Sienito, Granito, Sienito, Hornblenda-Biotita Granito, Monzonito, Quartzo Diorito, Diorito, Turmalina Granito, Filonito";NeoproterozÃ³ico;#FB708A;9
+NP23_gamma;"Granodiorito, Biotita Granito";NeoproterozÃ³ico;#FD5E66;10
+NP3;"Ultramilonito, Rocha VulcÃ¢nica IntermediÃ¡ria, Rocha VulcÃ¢nica MÃ¡fica, Metaconglomerado PolimÃ­tico, Metassiltito, Filito, ArdÃ³sia, Biotita Granito, Biotita Gnaisse MilonÃ­tico, Metabrecha, Metaconglomerado OligomÃ­tico, Metarenito, MetarcÃ³seo";NeoproterozÃ³ico;#AD9A8E;11
+NP3_gamma_2I;"GranitÃ³ide, Granito";NeoproterozÃ³ico;#FE9FF3;12
+NP1;"Quartzo Xisto, Filito, Metaconglomerado, Rocha MetaultramÃ¡fica, Rocha CalcissilicÃ¡tica, Milonito";NeoproterozÃ³ico;#B49BAD;13
+MP;"Metassiltito, Metarenito ConglomerÃ¡tico, Metarenito, Quartzito, Filito, MÃ¡rmore DolomÃ­tico, Xisto CarbonÃ¡tico, MÃ¡rmore, Metaconglomerado OligomÃ­tico, Metapelito, Metaconglomerado, Metacalcilutito, Metacalcarenito, Quartzo Xisto, MÃ¡rmore CalcÃ­tico, Clorita Xisto, Metarenito Arcoseano, MetacalcÃ¡rio CalcÃ­tico, Xisto";MesoproterozÃ³ico;#A49B97;14
+MP1;"Sericita Filito Carbonoso, Metapelito, Filito, Metachert, Metassiltito, Metarritmito, Metarenito, MetamÃ¡fica, Rocha MetaultramÃ¡fica, Metamarga, Calcifilito, MÃ¡rmore CalcÃ­tico, MetavulcanoclÃ¡stica, Rocha MetavulcÃ¢nica";MesoproterozÃ³ico;#A99682;15
+PP;"Metachert, Quartzo Xisto, Filito, Melagabro, Metapiroxenito, Metabasito, Sericita Xisto, Clorita Xisto, Xisto Magnesiano";PaleoproterozÃ³ico;#CCADC0;16
+PP2;"Gnaisse, Hornblenda Gnaisse, Gnaisse GranÃ­tico, Biotita Gnaisse, Augen Gnaisse, Migmatito, Ortognaisse TonalÃ­tico, Muscovita-Biotita Gnaisse, Protomilonito, Pegmatito, Migmatito EstromÃ¡tico";PaleoproterozÃ³ico;#FDA0C7;17
+A4;"Ortognaisse, Migmatito, Opdalito, Enderbito, Charnockito, Metanortosito, Granulito, Gnaisse, Granodiorito, Tonalito, Diorito, Metagabro, Migmatito EstromÃ¡tico, Kinzigito, AnfibÃ³lio Xisto";Neoarqueano;#9590BB;18

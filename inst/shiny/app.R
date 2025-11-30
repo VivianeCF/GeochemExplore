@@ -83,8 +83,8 @@ tabItem(
       width = 12,
       status = "primary",
       solidHeader = TRUE,
-      p("Selecione uma das opções abaixo para carregar os dados. Se você escolher 'Usar Arquivos Predefinidos', os arquivos da pasta 'inputs/' do aplicativo serão usados automaticamente."),
-      checkboxInput("use_predefined_files", "Usar Arquivos Predefinidos", value = FALSE)
+      p("Se você escolher 'Usar Arquivos Predefinidos', os arquivos da pasta 'inputs/' do aplicativo serão usados automaticamente."),
+      checkboxInput("use_predefined_files", "Usar Arquivos Predefinidos do Projeto Eldorado Paulista - SG.22-X-B-VI", value = FALSE)
     )
   ),
   fluidRow(
@@ -237,23 +237,23 @@ output$data_atualizacao_output <- renderUI({
 output$csv_inputs <- renderUI({
   if (input$use_predefined_files) {
     div(
-      p("Usando arquivos CSV predefinidos da pasta 'inputs/'."),
+      # p("Usando arquivos CSV predefinidos da pasta 'inputs/'."),
       tags$ul(
-        tags$li("mydata.csv"),
-        tags$li("myjob.csv"),
-        tags$li("mylitho.csv"),
-        tags$li("mylegend.csv")
+        tags$li("Dados Analíticos"),
+        tags$li("Dados das condições analíticas"),
+        tags$li("Dados litológicos das estações"),
+        tags$li("Legenda da simbologia das litologias")
       )
     )
   } else {
     div(
-      fileInput("mydata_upload", "1. Escolha mydata.csv",
+      fileInput("mydata_upload", "1. Escolha dados analíticos",
                 accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-      fileInput("myjob_upload", "2. Escolha myjob.csv",
+      fileInput("myjob_upload", "2. Escolha dados das condições analíticas",
                 accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-      fileInput("mylitho_upload", "3. Escolha mylitho.csv",
+      fileInput("mylitho_upload", "3. Escolha dados litológicos das estações",
                 accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv")),
-      fileInput("mylegend_upload", "4. Escolha mylegend.csv",
+      fileInput("mylegend_upload", "4. Escolha legenda para simbologia das litologias",
                 accept = c("text/csv", "text/comma-separated-values,text/plain", ".csv"))
     )
   }
@@ -262,23 +262,23 @@ output$csv_inputs <- renderUI({
 output$shp_inputs <- renderUI({
   if (input$use_predefined_files) {
     div(
-      p("Usando arquivos de forma predefinidos da pasta 'inputs/'."),
+      # p("Usando arquivos de forma predefinidos da pasta 'inputs/'."),
       tags$ul(
-        tags$li("mygeology.shp"),
-        tags$li("mywatershed.shp"),
-        tags$li("myoutlet.shp"),
-        tags$li("mystream.shp")
+        tags$li("Geologia da área de estudo"),
+        tags$li("Sub-bacias hidrográficas"),
+        tags$li("Estações de coleta"),
+        tags$li("Rede de drenagem")
       )
     )
   } else {
     div(
-      fileInput("mygeology_upload", "5. Escolha os arquivos de mygeology (.shp, .shx, .dbf, .prj)",
+      fileInput("mygeology_upload", "5. Escolha arquivos da geologia (.shp, .shx, .dbf, .prj)",
                 multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj")),
-      fileInput("mywatershed_upload", "6. Escolha os arquivos de mywatershed (.shp, .shx, .dbf, .prj)",
+      fileInput("mywatershed_upload", "6. Escolha arquivos das sub-bacias (.shp, .shx, .dbf, .prj)",
                 multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj")),
-      fileInput("myoutlet_upload", "7. Escolha os arquivos de myoutlet (.shp, .shx, .dbf, .prj)",
+      fileInput("myoutlet_upload", "7. Escolha arquivos das estações de coleta (.shp, .shx, .dbf, .prj)",
                 multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj")),
-      fileInput("mystream_upload", "8. Escolha os arquivos de mystream (.shp, .shx, .dbf, .prj)",
+      fileInput("mystream_upload", "8. Escolha arquivos da rede de drenagem (.shp, .shx, .dbf, .prj)",
                 multiple = TRUE, accept = c(".shp", ".dbf", ".shx", ".prj"))
     )
   }
