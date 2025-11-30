@@ -6,6 +6,17 @@ source("R/minhas_funcoes.R")
 # Cria um caminho de recurso explícito para a pasta www/
 # O nome 'icons' é o que será usado na URL web
 addResourcePath("icons", "www")
+# --- CÓDIGO FORA DA FUNÇÃO SERVER ---
+# 1. Defina o caminho para o arquivo que você quer monitorar (ex: o próprio app.R)
+caminho_arquivo <- "app.R" 
+# Se for um arquivo de dados, use o caminho para ele (ex: "data/meus_dados.csv")
+
+# 2. Obtenha as informações do arquivo e extraia a data de modificação (mtime)
+info_arquivo <- file.info(caminho_arquivo)
+
+# 3. Formate a data e hora para exibição
+data_modificacao <- format(info_arquivo$mtime, "%d/%m/%Y às %H:%M:%S")
+
 # Interface do usuário --------------------------------------------------------
 ui <- dashboardPage(
   dashboardHeader( 
@@ -229,10 +240,11 @@ tabItem(
 )
 # Servidor shiny --------------------------------------------------------------
 server <- function(input, output, session) {
-  # Adicione esta função para renderizar a data dinamicamente
-output$data_atualizacao_output <- renderUI({
-  p(paste("Data:", Sys.Date()))
-})
+# Renderiza o texto com a data estática que foi calculada acima
+    output$data_atualizacao_output <- renderUI({
+        p(paste("Última Atualização:", data_modificacao))
+    })
+          
 # Lógica para renderizar os inputs de arquivo
 output$csv_inputs <- renderUI({
   if (input$use_predefined_files) {
