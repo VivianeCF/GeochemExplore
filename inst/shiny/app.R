@@ -209,7 +209,12 @@ ui <- dashboardPage(
         ),
 
         h3("Estrutura dos dados de entrada - Demo"),
-
+h3("Os dados de entrada podem ser gerados no app GeochemField, disponível em:"),
+p(tags$a(
+  href = "https://github.com/VivianeCF/GeochemField",
+  target = "_blank",
+  "https://github.com/VivianeCF/GeochemField"
+)),
         fluidRow(
           column(
             6,
