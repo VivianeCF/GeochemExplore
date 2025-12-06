@@ -183,6 +183,8 @@ ui <- dashboardPage(
 
       tabItem(
         tabName = "info",
+        img(src = "icons/logo.jpg", width = 100, units = "%", alt = "Sua Foto", class = "logo-image"),
+
         h2("Informações do Aplicativo"),
         p("O aplicativo foi desenvolvido para o Serviço Geológico do Brasil/CPRM e comunidade geocientífica. Ele permite que o usuário carregue dados e realize análises exploratórias dos resultados analíticos de amostras de sedimento de corrente."),
 
