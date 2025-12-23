@@ -566,7 +566,9 @@ server <- function(input, output, session) {
   # 3. Só processe os dados se upload_completo() for TRUE
   mydata_processed <- reactive({
     req(upload_completo())
-    mydata <- dplyr::left_join(mydata_upload(), mylitho_upload(), by = "VALUE")
+    mydata <- mydata_upload()
+    mydata$VALUE <- 1:nrow(mydata)
+    mydata <- dplyr::left_join(mydata, mylitho_upload(), by = "VALUE")
     mydata <- dplyr::left_join(mydata, mylegend_upload(), by = "Geo_cod")
     mydata$Geo_cod <- factor(mydata$Geo_cod)
     sm <- summary(mydata$Geo_cod)
