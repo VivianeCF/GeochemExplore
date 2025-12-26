@@ -918,8 +918,8 @@ server <- function(input, output, session) {
         color = "blue"
       ) |>
       addMarkers(
-        lng = ~LONG_DEC,
-        lat = ~LAT_DEC,
+        lng = ~LONGITUDE,
+        lat = ~LATITUDE,
         icon = ~ icons(
           iconUrl = paste0("icons/", iconFiles()[as.character(Classe)]),
           iconWidth = 20,
@@ -1318,8 +1318,8 @@ server <- function(input, output, session) {
     filtered_data <- dados_classificados[, c(
       "NUM_LAB",
       "ESTACAO",
-      "LONG_DEC",
-      "LAT_DEC",
+      "LONGITUDE",
+      "LATITUDE",
       input$variable,
       "Classe"
     )]
