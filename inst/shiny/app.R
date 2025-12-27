@@ -567,7 +567,6 @@ server <- function(input, output, session) {
   mydata_processed <- reactive({
     req(upload_completo())
     mydata <- mydata_upload()
-    mydata$VALUE <- 1:nrow(mydata)
     mydata <- dplyr::left_join(mydata, mylitho_upload(), by = "VALUE")
     mydata <- dplyr::left_join(mydata, mylegend_upload(), by = "Geo_cod")
     mydata$Geo_cod <- factor(mydata$Geo_cod)
